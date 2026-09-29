@@ -92,7 +92,8 @@ jobs:
               repo_id=os.environ["HF_SPACE"],
               repo_type="space",
               commit_message=f"Deploy {os.environ['SOURCE_SHA'][:7]} (run {os.environ['RUN_ID']})",
-              delete_patterns=["src/**"],
+              # Remove stale code and the default files of a freshly created Space.
+              delete_patterns=["src/**", "index.html", "style.css"],
           )
           EOF
 
