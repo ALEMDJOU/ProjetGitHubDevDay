@@ -38,6 +38,18 @@ jobs:
         with:
           ref: ${{ env.SOURCE_SHA }}
 
+      # Never report success without deploying anywhere.
+      - name: Check deploy target
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: |
+          if [ -z "$APP_URL" ] && [ -z "$HF_SPACE" ]; then
+            echo "::error::No deploy target: set the variable APP_URL (Render URL) or HF_SPACE"
+            exit 1
+          fi
+          echo "APP_URL=${APP_URL:-<unset>} HF_SPACE=${HF_SPACE:-<unset>}"
+
       # Manual run without run_id: pick the latest successful training run on main.
       - name: Resolve training run
         env:
