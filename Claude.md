@@ -18,7 +18,7 @@ Everything must be simple, fast, reproducible by workshop participants, and read
 2. **No sensitive data.** Public, openly licensed dataset only. Record source URL, license and citation in `data/README.md`.
 3. **No GPU, no paid cloud.** Full train + evaluate must run in under 2 minutes on a GitHub-hosted runner; the whole pipeline in under 10 minutes.
 4. **Stack is fixed:** Python 3.11, pandas, scikit-learn, joblib, FastAPI, Uvicorn, pytest, Ruff, Docker, GitHub Actions. Do not add heavy frameworks (no PyTorch, TensorFlow, MLflow, DVC, Kubernetes) unless I explicitly ask.
-5. **Deployment target is free:** Docker image on GHCR + Hugging Face Space (Docker SDK, port 7860). Never require paid services.
+5. **Deployment target is free:** Docker image on GHCR, deployed to a **Render** free web service (image-backed, triggered by a deploy hook; the container listens on `$PORT`, default 7860). A Hugging Face Space (Docker SDK) is an optional second target, used only when the `HF_SPACE` variable is set. Never require paid services.
 6. **Never invent numbers.** Do not write accuracy, F1, timings or speedups into the README, docs or slides unless they come from a real run you executed or a real workflow run I gave you. If unknown, leave a clearly marked `TODO(measure)`.
 7. **Never commit secrets.** Tokens live in GitHub Secrets/Variables only.
 
@@ -86,12 +86,14 @@ avocado-ripeness-mlops/
 |---|---|---|
 | `ci.yml` | PR, push to `main` | Ruff check + format check, pytest with coverage, Docker build + run container + `curl /health`. Use `concurrency` with cancel-in-progress. |
 | `train.yml` | push to `main` on `data/**` or training code, weekly cron, `workflow_dispatch` (input `min_f1`) | Train, evaluate with the quality gate, append `metrics/report.md` to `$GITHUB_STEP_SUMMARY` (with `if: always()`), upload `model.joblib` + `metrics.json` as artifact `model` (30 days). |
-| `deploy.yml` | `workflow_run` of "Train & Evaluate" on success, `workflow_dispatch` (input `run_id`) | Download artifact, build and push image to GHCR (`sha` + `latest`), push files to the Hugging Face Space, smoke test the live `/health`. Job uses environment `production`. |
+| `deploy.yml` | `workflow_run` of "Train & Evaluate" on success, `workflow_dispatch` (optional input `run_id`, empty = latest green training run) | Download artifact, build and push image to GHCR (`sha` + `latest`), trigger the Render deploy hook with the new image tag, smoke test the live `/health` until it reports the new commit SHA; optionally push to the HF Space. Job uses environment `production`. |
 | `monitor.yml` | cron every 6 h, manual | Check `/health` and one known prediction; on failure open a GitHub issue with a link to the run. |
 
 Rules for all workflows: minimal `permissions:` per workflow, `timeout-minutes` on jobs, actions pinned to major versions, pip cache enabled, no secrets echoed.
 
-Secrets and variables to document (not to create): secret `HF_TOKEN` (environment `production`); variables `HF_SPACE`, `HF_SPACE_URL`, `MIN_F1`.
+| `Never_Sleep.yml` | cron every 10 min, manual | Ping `/health` so the Render free instance never spins down (it sleeps after 15 min idle). |
+
+Secrets and variables to document (not to create): secret `RENDER_DEPLOY_HOOK_URL` (environment `production`); variables `APP_URL` (public Render URL, used by deploy, monitor and Never_Sleep), `MIN_F1`; optional `HF_SPACE` + secret `HF_TOKEN` for the Hugging Face target.
 
 ## Makefile targets
 
@@ -101,7 +103,7 @@ Secrets and variables to document (not to create): secret `HF_TOKEN` (environmen
 
 When the pipeline works, write a **beautiful, professional, visually polished `README.md`**. It is the first thing the audience sees, so treat it as a product page. Requirements:
 
-- **Hero section:** project name, one-line pitch, a short tagline about the talk, and a row of badges (CI, Train & Evaluate, Deploy, Python 3.11, license, "Open in Hugging Face Space").
+- **Hero section:** project name, one-line pitch, a short tagline about the talk, and a row of badges (CI, Train & Evaluate, Deploy, Python 3.11, license, link to the live API).
 - **Demo visual:** a screenshot or GIF of the live API/Space in `assets/` (leave a clearly marked placeholder with instructions if I have not provided the image yet; never fake a screenshot).
 - **Why this project:** 3 to 4 short lines on the problem (manual ML steps) and the automated solution.
 - **Architecture:** a Mermaid flowchart of `data -> CI -> train -> evaluate gate -> package -> deploy -> monitor`, plus a table mapping each stage to the workflow and tool.

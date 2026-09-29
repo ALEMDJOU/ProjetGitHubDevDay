@@ -10,7 +10,8 @@ flowchart LR
     D --> E{Quality gate<br/>macro F1 ≥ MIN_F1}
     E -- fail --> X[❌ stop, no artifact]
     E -- pass --> F[artifact: model]
-    F --> G[deploy.yml<br/>GHCR image + HF Space]
+    F --> G[deploy.yml<br/>GHCR image → Render]
+    G --> K[Never_Sleep.yml<br/>ping every 10 min]
     G --> H[monitor.yml<br/>every 6 h]
     H -- failure --> I[🚨 GitHub issue]
 ```
@@ -24,7 +25,8 @@ flowchart LR
 | Package check | `ci.yml` | Docker | container answers `/health` |
 | Train | `train.yml` → `avoripe.train` | scikit-learn | `models/model.joblib` |
 | Evaluate + gate | `train.yml` → `avoripe.evaluate` | scikit-learn | `metrics/metrics.json`, `metrics/report.md`, exit 1 if gate fails |
-| Package + deploy | `deploy.yml` | Docker, GHCR, huggingface_hub | image `sha` + `latest`, Space updated |
+| Package + deploy | `deploy.yml` | Docker, GHCR, Render deploy hook | image `sha` + `latest`, Render service on the new tag, `/health` reports the SHA |
+| Keep warm | `Never_Sleep.yml` | curl | Render free instance never spins down |
 | Monitor | `monitor.yml` | curl, gh | issue on failure |
 
 ## Why a one-off extraction step?

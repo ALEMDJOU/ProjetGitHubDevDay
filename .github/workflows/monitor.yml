@@ -15,17 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      HF_SPACE_URL: ${{ vars.HF_SPACE_URL }}
+      APP_URL: ${{ vars.APP_URL }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Check /health
-        run: curl -fsS --retry 3 --retry-delay 10 "$HF_SPACE_URL/health" | tee health.json | grep -q '"model_loaded":true'
+        run: curl -fsS --retry 3 --retry-delay 10 "$APP_URL/health" | tee health.json | grep -q '"model_loaded":true'
 
       # Known prediction: one real photo from the dataset, stored in tests/fixtures.
       - name: Check a known prediction
         run: |
-          curl -fsS --retry 3 --retry-delay 10 -X POST "$HF_SPACE_URL/predict" \
+          curl -fsS --retry 3 --retry-delay 10 -X POST "$APP_URL/predict" \
             -H "Content-Type: application/json" \
             -d @tests/fixtures/known_sample.json | tee prediction.json
           python3 -c "import json; p = json.load(open('prediction.json')); assert p['ripeness'] in p['probabilities']"
@@ -38,8 +38,8 @@ jobs:
         run: |
           gh issue create \
             --title "🚨 Monitor: live service check failed ($(date -u +%Y-%m-%dT%H:%MZ))" \
-            --body "The scheduled check of \`$HF_SPACE_URL\` failed. See the run: $RUN_URL" \
+            --body "The scheduled check of \`$APP_URL\` failed. See the run: $RUN_URL" \
             --label monitoring || \
           gh issue create \
             --title "🚨 Monitor: live service check failed ($(date -u +%Y-%m-%dT%H:%MZ))" \
-            --body "The scheduled check of \`$HF_SPACE_URL\` failed. See the run: $RUN_URL"
+            --body "The scheduled check of \`$APP_URL\` failed. See the run: $RUN_URL"

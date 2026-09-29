@@ -14,7 +14,7 @@ GitHub Actions and Copilot"*.
 [![Deploy](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/deploy.yml/badge.svg)](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/deploy.yml)
 ![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Open in Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Open%20in-Spaces-yellow)](https://huggingface.co/spaces/NewHenri/MLOps_Github_Dev_Day)
+[![Live API on Render](https://img.shields.io/badge/Live%20API-Render-46E3B7?logo=render&logoColor=white)](https://YOUR-SERVICE.onrender.com/docs)
 
 `lint + tests` → `train` → `evaluate (quality gate)` → `package` → `deploy` → `monitor`
 
@@ -24,8 +24,8 @@ GitHub Actions and Copilot"*.
 
 ## 📸 Demo
 
-> **TODO(owner): add a real screenshot or GIF of the live Space.**
-> 1. Open `https://newhenri-mlops-github-dev-day.hf.space/docs`, run `POST /predict` with the example.
+> **TODO(owner): add a real screenshot or GIF of the live API.**
+> 1. Open `https://YOUR-SERVICE.onrender.com/docs`, run `POST /predict` with the example.
 > 2. Save it as `assets/demo.gif` (or `.png`) and replace this block with:
 >    `![Live API demo](assets/demo.gif)`
 
@@ -47,7 +47,8 @@ flowchart LR
     T --> G{🚦 Quality gate<br/>macro F1 ≥ MIN_F1}
     G -- fail --> X[❌ Stop:<br/>no artifact, no deploy]
     G -- pass --> P[📦 Package<br/>Docker → GHCR]
-    P --> DEP[🚀 Deploy<br/>Hugging Face Space]
+    P --> DEP[🚀 Deploy<br/>Render]
+    DEP --> NS[⏰ Never Sleep<br/>ping every 10 min]
     DEP --> M[📈 Monitor<br/>every 6 h]
     M -- failure --> I[🚨 GitHub issue]
 ```
@@ -59,7 +60,8 @@ flowchart LR
 | Train | [`train.yml`](.github/workflows/train.yml) | pandas, scikit-learn, joblib |
 | Evaluate + gate | [`train.yml`](.github/workflows/train.yml) | scikit-learn metrics, `MIN_F1` |
 | Package | [`deploy.yml`](.github/workflows/deploy.yml) | Docker, GitHub Container Registry |
-| Deploy | [`deploy.yml`](.github/workflows/deploy.yml) | Hugging Face Space (Docker SDK), FastAPI, Uvicorn |
+| Deploy | [`deploy.yml`](.github/workflows/deploy.yml) | Render free web service (deploy hook), FastAPI, Uvicorn |
+| Keep warm | [`Never_Sleep.yml`](.github/workflows/Never_Sleep.yml) | curl every 10 min |
 | Monitor | [`monitor.yml`](.github/workflows/monitor.yml) | curl, GitHub CLI (issues) |
 
 More details in [`docs/architecture.md`](docs/architecture.md).
@@ -115,7 +117,8 @@ uvicorn avoripe.api:app --host 0.0.0.0 --port 7860
 |---|---|---|---|
 | **CI** | Pull request, push to `main` | Ruff lint + format check, pytest (coverage ≥ 80%), Docker build, run container, `curl /health` | ✅/❌ on the PR |
 | **Train & Evaluate** | Push to `main` touching `data/**` or training code, weekly cron, manual (`min_f1` input) | Train, evaluate, quality gate, job summary with metrics + confusion matrix | Artifact `model` (`model.joblib` + `metrics.json`, 30 days) |
-| **Deploy** | After a **successful** Train & Evaluate on `main`, or manual (`run_id`) | Download the artifact, push image to GHCR (`sha` + `latest`), push to the HF Space, smoke-test live `/health` | Image on GHCR, updated Space |
+| **Deploy** | After a **successful** Train & Evaluate on `main`, or manual (`run_id` optional: empty = latest green training run) | Download the artifact, push image to GHCR (`sha` + `latest`), redeploy it on Render, wait until live `/health` reports the new commit SHA | Image on GHCR, live API on Render |
+| **Never Sleep** | Every 10 min, manual | Ping `/health` so the free Render instance never spins down | Always-warm API |
 | **Monitor** | Every 6 h, manual | Check live `/health` and one known real prediction | GitHub issue on failure |
 
 ### 🚦 The quality gate
@@ -229,7 +232,7 @@ Schema, checksums and how to rebuild the CSV: [`data/README.md`](data/README.md)
 │   ├── schemas.py            # Pydantic request/response models
 │   └── api.py                # FastAPI: /health, /predict, /metrics
 ├── tests/                    # pytest, real-row fixtures, no network
-├── deploy/space_README.md    # Hugging Face Space front matter
+├── deploy/space_README.md    # optional Hugging Face Space front matter
 ├── docs/                     # architecture, demo script
 ├── Dockerfile  Makefile  pyproject.toml  requirements*.txt
 ```
@@ -242,13 +245,14 @@ Set these in **Settings → Secrets and variables → Actions** (never in code):
 
 | Name | Kind | Scope | Used by | Example |
 |---|---|---|---|---|
-| `HF_TOKEN` | Secret | Environment `production` | `deploy.yml` | Hugging Face token with write access |
-| `HF_SPACE` | Variable | Repository | `deploy.yml` | `NewHenri/MLOps_Github_Dev_Day` |
-| `HF_SPACE_URL` | Variable | Repository | `deploy.yml`, `monitor.yml` | `https://newhenri-mlops-github-dev-day.hf.space` |
+| `RENDER_DEPLOY_HOOK_URL` | Secret | Environment `production` | `deploy.yml` | Deploy hook of the Render service (Settings → Deploy Hook) |
+| `APP_URL` | Variable | Repository | `deploy.yml`, `monitor.yml`, `Never_Sleep.yml` | `https://YOUR-SERVICE.onrender.com` |
+| `HF_SPACE` + `HF_TOKEN` | Variable + Secret | Optional | `deploy.yml` | Also push to a Hugging Face Space (Docker SDK) |
 | `MIN_F1` | Variable | Repository | `train.yml` | `0.75` |
 
-Also: create the environment **`production`** (optionally with required reviewers), create
-the Space with the **Docker** SDK, and allow the workflows to write packages (GHCR).
+Also: create the environment **`production`**, make the GHCR package **public** (so Render can
+pull it), and create a Render **Web Service → Existing image** from
+`ghcr.io/alemdjou/projetgithubdevday:latest` on the **Free** plan with `/health` as health check.
 
 ## 🧭 Limitations and roadmap
 
@@ -259,6 +263,8 @@ the Space with the **Docker** SDK, and allow the workflows to write packages (GH
   is grouped by avocado to avoid leakage, but only one held-out fold is used.
 - **No data versioning** beyond Git + checksums (no DVC by design).
 - **No model registry:** models live as 30-day workflow artifacts and inside Docker images.
+- **Free hosting limits:** Render's free plan gives 750 instance-hours per month (enough for one
+  always-on service) and restarts can take a minute; `Never_Sleep.yml` only prevents idle spin-down.
 - **Minimal monitoring:** health + one known prediction; `/metrics` is in-memory and resets on
   restart. No drift detection yet.
 

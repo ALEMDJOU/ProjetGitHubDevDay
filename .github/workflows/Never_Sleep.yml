@@ -1,0 +1,28 @@
+name: Never Sleep
+
+# Render free web services spin down after 15 minutes without traffic.
+# Pinging /health every 10 minutes keeps the demo instance warm.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: never-sleep
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    name: Keep the service awake
+    if: vars.APP_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping /health
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          # A cold start can take ~1 minute on the free plan, hence the retries.
+          curl -fsS -m 60 --retry 3 --retry-delay 10 --retry-all-errors "$APP_URL/health"

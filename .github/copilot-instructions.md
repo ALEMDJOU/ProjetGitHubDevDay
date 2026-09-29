@@ -27,7 +27,9 @@ GitHub Actions. Do not suggest PyTorch, TensorFlow, MLflow, DVC, Kubernetes or p
 
 - `ci.yml`: lint, tests (coverage >= 80%), Docker build + `/health` smoke test.
 - `train.yml`: train, evaluate, quality gate on macro F1 (`MIN_F1`), upload artifact `model`.
-- `deploy.yml`: after a successful train, push image to GHCR and files to the HF Space.
+- `deploy.yml`: after a successful train, push image to GHCR and redeploy it on Render (deploy hook);
+  the HF Space is optional.
+- `Never_Sleep.yml`: pings `/health` every 10 min so the free Render instance stays awake.
 - `monitor.yml`: every 6 h, check `/health` and a known prediction; open an issue on failure.
 - Keep minimal `permissions:`, `timeout-minutes` on every job, actions pinned to major versions.
 
@@ -35,5 +37,5 @@ GitHub Actions. Do not suggest PyTorch, TensorFlow, MLflow, DVC, Kubernetes or p
 
 - Never weaken a test or lower the quality gate to make CI green.
 - Never write metrics or timings into docs unless they come from a real run.
-- Never commit secrets; use GitHub Secrets (`HF_TOKEN`) and Variables (`HF_SPACE`,
-  `HF_SPACE_URL`, `MIN_F1`).
+- Never commit secrets; use GitHub Secrets (`RENDER_DEPLOY_HOOK_URL`, optional `HF_TOKEN`) and
+  Variables (`APP_URL`, `MIN_F1`, optional `HF_SPACE`).

@@ -29,11 +29,12 @@ def real_payload(real_df: pd.DataFrame, row: int = 0) -> dict:
     return record
 
 
-def test_health(client: TestClient) -> None:
-    """/health reports ok once the model is loaded."""
+def test_health(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    """/health reports ok, the loaded model and the deployed commit SHA."""
+    monkeypatch.setenv("GIT_SHA", "abc1234")
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "model_loaded": True}
+    assert response.json() == {"status": "ok", "model_loaded": True, "version": "abc1234"}
 
 
 def test_predict_happy_path(client: TestClient, real_df: pd.DataFrame) -> None:

@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 20
     environment:
       name: production
-      url: ${{ vars.HF_SPACE_URL }}
+      url: ${{ vars.APP_URL }}
     env:
       RUN_ID: ${{ github.event.inputs.run_id || github.event.workflow_run.id }}
       SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
@@ -90,23 +90,53 @@ jobs:
         with:
           context: .
           push: true
+          build-args: GIT_SHA=${{ env.SOURCE_SHA }}
           tags: |
             ${{ env.IMAGE }}:${{ env.SOURCE_SHA }}
             ${{ env.IMAGE }}:latest
 
+      # Render (primary target): redeploy the image-backed service with the new tag.
+      - name: Deploy to Render
+        if: vars.APP_URL != ''
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::error::Secret RENDER_DEPLOY_HOOK_URL is empty: add it as a SECRET of environment 'production'"
+            exit 1
+          fi
+          IMG=$(python3 -c "import urllib.parse,os; print(urllib.parse.quote(os.environ['IMAGE'] + ':' + os.environ['SOURCE_SHA'], safe=''))")
+          curl -fsS -X POST "${RENDER_DEPLOY_HOOK_URL}&imgURL=${IMG}" -o /dev/null
+          echo "Render deploy triggered for $IMAGE:$SOURCE_SHA"
+
+      - name: Smoke test live /health (new version)
+        if: vars.APP_URL != ''
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          # Wait until the live service reports the SHA we just deployed (up to ~10 minutes).
+          for i in $(seq 1 60); do
+            BODY=$(curl -fsS -m 20 "$APP_URL/health" || true)
+            if echo "$BODY" | grep -q "\"version\":\"$SOURCE_SHA\"" \
+              && echo "$BODY" | grep -q '"model_loaded":true'; then
+              echo "Live: $BODY"; exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::$APP_URL did not serve version $SOURCE_SHA in time (last: $BODY)"; exit 1
+
+      # Hugging Face Space (optional): only when the HF_SPACE variable is set.
       - uses: actions/setup-python@v5
+        if: vars.HF_SPACE != ''
         with:
           python-version: "3.11"
 
       - name: Push to Hugging Face Space
+        if: vars.HF_SPACE != ''
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE: ${{ vars.HF_SPACE }}
         run: |
-          # Fail fast with a readable message when the configuration is missing.
-          if [ -z "$HF_SPACE" ]; then
-            echo "::error::Variable HF_SPACE is empty (expected e.g. owner/space-name)"; exit 1
-          fi
           if [ -z "$HF_TOKEN" ]; then
             echo "::error::Secret HF_TOKEN is empty: add it as a SECRET of environment 'production'"; exit 1
           fi
@@ -116,7 +146,7 @@ jobs:
           mkdir -p space
           cp -r Dockerfile requirements.txt src models space/
           cp deploy/space_README.md space/README.md
-          python - <<'EOF'
+          python - <<'PY'
           import os
           from huggingface_hub import HfApi
           HfApi(token=os.environ["HF_TOKEN"]).upload_folder(
@@ -127,18 +157,4 @@ jobs:
               # Remove stale code and the default files of a freshly created Space.
               delete_patterns=["src/**", "index.html", "style.css"],
           )
-          EOF
-
-      - name: Smoke test live /health
-        env:
-          HF_SPACE_URL: ${{ vars.HF_SPACE_URL }}
-        run: |
-          # The Space rebuilds after the push; give it up to ~10 minutes.
-          sleep 60
-          for i in $(seq 1 54); do
-            if curl -fsS "$HF_SPACE_URL/health" | grep -q '"model_loaded":true'; then
-              echo "Space is healthy"; exit 0
-            fi
-            sleep 10
-          done
-          echo "Space did not become healthy in time"; exit 1
+          PY

@@ -56,9 +56,13 @@ app = FastAPI(
 
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
-    """Report liveness and whether the model is loaded."""
+    """Report liveness, whether the model is loaded and the deployed commit SHA."""
     loaded = app.state.model is not None
-    return HealthResponse(status="ok" if loaded else "degraded", model_loaded=loaded)
+    return HealthResponse(
+        status="ok" if loaded else "degraded",
+        model_loaded=loaded,
+        version=os.getenv("GIT_SHA", "dev"),
+    )
 
 
 @app.post("/predict", response_model=Prediction)
