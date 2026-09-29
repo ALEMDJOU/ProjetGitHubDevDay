@@ -1,5 +1,3 @@
-<!-- TODO(owner): replace YOUR_HF_USER/avocado-ripeness below with the real Hugging Face Space. -->
-
 <div align="center">
 
 # 🥑 Avocado Ripeness MLOps
@@ -16,7 +14,7 @@ GitHub Actions and Copilot"*.
 [![Deploy](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/deploy.yml/badge.svg)](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/deploy.yml)
 ![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Open in Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Open%20in-Spaces-yellow)](https://huggingface.co/spaces/YOUR_HF_USER/avocado-ripeness)
+[![Open in Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Open%20in-Spaces-yellow)](https://huggingface.co/spaces/NewHenri/MLOps_Github_Dev_Day)
 
 `lint + tests` → `train` → `evaluate (quality gate)` → `package` → `deploy` → `monitor`
 
@@ -27,7 +25,7 @@ GitHub Actions and Copilot"*.
 ## 📸 Demo
 
 > **TODO(owner): add a real screenshot or GIF of the live Space.**
-> 1. Open `https://YOUR_HF_USER-avocado-ripeness.hf.space/docs`, run `POST /predict` with the example.
+> 1. Open `https://newhenri-mlops-github-dev-day.hf.space/docs`, run `POST /predict` with the example.
 > 2. Save it as `assets/demo.gif` (or `.png`) and replace this block with:
 >    `![Live API demo](assets/demo.gif)`
 
@@ -245,8 +243,8 @@ Set these in **Settings → Secrets and variables → Actions** (never in code):
 | Name | Kind | Scope | Used by | Example |
 |---|---|---|---|---|
 | `HF_TOKEN` | Secret | Environment `production` | `deploy.yml` | Hugging Face token with write access |
-| `HF_SPACE` | Variable | Repository | `deploy.yml` | `YOUR_HF_USER/avocado-ripeness` |
-| `HF_SPACE_URL` | Variable | Repository | `deploy.yml`, `monitor.yml` | `https://YOUR_HF_USER-avocado-ripeness.hf.space` |
+| `HF_SPACE` | Variable | Repository | `deploy.yml` | `NewHenri/MLOps_Github_Dev_Day` |
+| `HF_SPACE_URL` | Variable | Repository | `deploy.yml`, `monitor.yml` | `https://newhenri-mlops-github-dev-day.hf.space` |
 | `MIN_F1` | Variable | Repository | `train.yml` | `0.75` |
 
 Also: create the environment **`production`** (optionally with required reviewers), create
