@@ -43,9 +43,9 @@ full test suite ≈ 7 s (pytest time).
 
 | Workflow | Duration on GitHub runner |
 |---|---|
-| CI | TODO(measure) |
-| Train & Evaluate | TODO(measure) |
-| Deploy (incl. Render rollout) | TODO(measure) |
+| CI | Lint & test 28 s, then Docker build & smoke test 43 s (run 36566619977) |
+| Train & Evaluate | 30 s job (run 36567592198) |
+| Deploy (incl. Render rollout) | 157 s, until live `/health` reported the new SHA (run 36577128199) |
 | Monitor | TODO(measure) |
 
 If Deploy is longer than ~1 minute, **never wait for it live**: show the last green run and the
