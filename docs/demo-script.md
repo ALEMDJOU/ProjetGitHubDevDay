@@ -23,7 +23,7 @@
 |---|---|---|
 | 0:00–0:30 | **README** hero + Mermaid diagram | "Real photos of 478 avocados, a small model, and a pipeline where nobody runs a notebook by hand." |
 | 0:30–1:15 | **Open the PR** from `demo/more-trees` (Copilot writes the PR description). Actions tab: `CI` starts | "I change one hyperparameter. That's all I do by hand. Copilot drafts the PR; Actions takes over." |
-| 1:15–2:00 | **CI run** (pre-recorded green run if the live one is still going): Ruff, pytest with coverage, Docker build + `/health` | "Lint, 22 tests, coverage gate at 80%, and the container must answer `/health` before anything merges." |
+| 1:15–2:00 | **CI run** (pre-recorded green run if the live one is still going): Ruff, pytest with coverage, Docker build + `/health` | "Lint, 27 tests, coverage gate at 80%, and the container must answer `/health` before anything merges." |
 | 2:00–3:00 | **Train & Evaluate job summary**: metrics table + confusion matrix. Then the **red run** with `min_f1 = 0.95` | "Training takes seconds. The gate is macro F1 against `MIN_F1`. Raise the bar and the pipeline refuses to ship: no artifact, no deploy." |
 | 3:00–4:00 | **Deploy**: `workflow_run` trigger, `production` environment, GHCR image tagged with the SHA, then the **live `/docs` on Render**: `/health` shows the commit SHA, run `/predict` with the example | "Only a model that passed the gate reaches production: the exact image from GHCR, verified by its commit SHA." |
 | 4:00–4:40 | **Monitor** workflow: cron every 6 h, `/health` + a known real prediction, opens an issue on failure | "And if it breaks at 3 a.m., we get an issue with a link to the run, not a surprise." |

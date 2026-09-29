@@ -50,6 +50,7 @@ flowchart LR
     P --> DEP[🚀 Deploy<br/>Render]
     DEP --> NS[⏰ Never Sleep<br/>ping every 10 min]
     DEP --> M[📈 Monitor<br/>every 6 h]
+    UI[🖥️ Streamlit UI<br/>photo → features] -. POST /predict .-> DEP
     M -- failure --> I[🚨 GitHub issue]
 ```
 
@@ -100,9 +101,20 @@ $env:PYTHONPATH = "src"
 python -m avoripe.train
 python -m avoripe.evaluate
 uvicorn avoripe.api:app --host 0.0.0.0 --port 7860
+# Streamlit UI (in another terminal, same PYTHONPATH)
+pip install -r requirements-ui.txt
+streamlit run app/streamlit_app.py
 ```
 
 </details>
+
+| Endpoint | What it does |
+|---|---|
+| `GET /` | Redirects to `/docs` |
+| `GET /health` | Liveness, whether the model is loaded, deployed commit SHA (`version`) |
+| `POST /predict` | Validated features → ripeness class + per-class probabilities |
+| `GET /metrics` | Request count, mean latency, distribution of predicted classes |
+| `GET /docs` | Interactive Swagger UI |
 
 ### 🖥️ Streamlit UI
 
@@ -117,13 +129,6 @@ make ui                                                 # http://localhost:8501
 It calls `https://avocado-ripeness.onrender.com` by default; set `AVORIPE_API_URL` to use a
 local API (`make run`). The dataset photos must be in `data/images/` (see
 [`data/README.md`](data/README.md)); uploads work without them.
-
-| Endpoint | What it does |
-|---|---|
-| `GET /health` | Liveness + whether the model is loaded |
-| `POST /predict` | Validated features → ripeness class + per-class probabilities |
-| `GET /metrics` | Request count, mean latency, distribution of predicted classes |
-| `GET /docs` | Interactive Swagger UI |
 
 ## 🔁 The pipeline
 
@@ -223,7 +228,8 @@ Example prompts:
 > Xavier, P., Rodrigues, P., & Silva, C. L. M. (2024). *'Hass' Avocado Ripening Photographic
 > Dataset* (Version 1) [Data set]. Mendeley Data. https://doi.org/10.17632/3xd9n945v8.1
 
-Schema, checksums and how to rebuild the CSV: [`data/README.md`](data/README.md).
+Schema, checksums, how to rebuild the CSV and where to put the photos locally (`data/images/`,
+used by the Streamlit UI): [`data/README.md`](data/README.md).
 
 ## 📁 Project structure
 
@@ -233,10 +239,13 @@ Schema, checksums and how to rebuild the CSV: [`data/README.md`](data/README.md)
 ```text
 .
 ├── .github/
-│   ├── workflows/            # ci, train, deploy, monitor
+│   ├── workflows/            # ci, train, deploy, monitor, Never_Sleep
 │   ├── ISSUE_TEMPLATE/       # bug report, feature request
 │   └── copilot-instructions.md
-├── data/raw/                 # real feature table (CSV) + README with source and license
+├── data/
+│   ├── raw/                  # real feature table (CSV), committed
+│   ├── images/               # local copy of the 14,710 photos (git-ignored)
+│   └── README.md             # source, license, checksums, schema
 ├── app/streamlit_app.py      # Streamlit UI: photo -> features -> live API -> stage
 ├── scripts/                  # one-off feature extraction from the original photos
 ├── src/avoripe/
@@ -247,7 +256,7 @@ Schema, checksums and how to rebuild the CSV: [`data/README.md`](data/README.md)
 │   ├── features.py           # photo -> colour features (shared by script and UI)
 │   ├── schemas.py            # Pydantic request/response models
 │   └── api.py                # FastAPI: /health, /predict, /metrics
-├── tests/                    # pytest, real-row fixtures, no network
+├── tests/                    # pytest, real rows + 1 real photo in fixtures/, no network
 ├── deploy/space_README.md    # optional Hugging Face Space front matter
 ├── docs/                     # architecture, demo script
 ├── Dockerfile  Makefile  pyproject.toml  requirements*.txt
@@ -273,8 +282,9 @@ pull it), and create a Render **Web Service → Existing image** from
 ## 🧭 Limitations and roadmap
 
 - **Toy scale:** ~15k rows, one random forest. The point is the pipeline, not the model.
-- **Features, not pixels:** colour statistics are extracted once, offline; a new photo needs
-  the same extraction before calling `/predict`. Roadmap: an endpoint that accepts an image.
+- **Features, not pixels:** the API takes colour statistics, not an image. The Streamlit UI
+  extracts them from a photo with the dataset's own code; photos far from the dataset's setup
+  (one avocado, white background, fixed camera) will give unreliable features.
 - **Photo-level split:** photos of the same avocado on different days are correlated; the split
   is grouped by avocado to avoid leakage, but only one held-out fold is used.
 - **No data versioning** beyond Git + checksums (no DVC by design).
