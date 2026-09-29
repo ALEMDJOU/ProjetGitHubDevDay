@@ -1,0 +1,111 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Train & Evaluate"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Run ID of a successful 'Train & Evaluate' run to deploy"
+        required: true
+
+permissions:
+  contents: read
+  actions: read # download the artifact from another run
+  packages: write # push to GHCR
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Package & deploy
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ vars.HF_SPACE_URL }}
+    env:
+      RUN_ID: ${{ github.event.inputs.run_id || github.event.workflow_run.id }}
+      SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+
+      - name: Download model artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: model
+          run-id: ${{ env.RUN_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: artifact
+
+      - name: Place model
+        run: |
+          mkdir -p models metrics
+          mv artifact/models/model.joblib models/model.joblib
+          mv artifact/metrics/metrics.json metrics/metrics.json
+          cat metrics/metrics.json
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image name (lowercase)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ env.SOURCE_SHA }}
+            ${{ env.IMAGE }}:latest
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: |
+          pip install huggingface_hub
+          mkdir -p space
+          cp -r Dockerfile requirements.txt src models space/
+          cp deploy/space_README.md space/README.md
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi
+          HfApi(token=os.environ["HF_TOKEN"]).upload_folder(
+              folder_path="space",
+              repo_id=os.environ["HF_SPACE"],
+              repo_type="space",
+              commit_message=f"Deploy {os.environ['SOURCE_SHA'][:7]} (run {os.environ['RUN_ID']})",
+              delete_patterns=["src/**"],
+          )
+          EOF
+
+      - name: Smoke test live /health
+        env:
+          HF_SPACE_URL: ${{ vars.HF_SPACE_URL }}
+        run: |
+          # The Space rebuilds after the push; give it up to ~10 minutes.
+          sleep 60
+          for i in $(seq 1 54); do
+            if curl -fsS "$HF_SPACE_URL/health" | grep -q '"model_loaded":true'; then
+              echo "Space is healthy"; exit 0
+            fi
+            sleep 10
+          done
+          echo "Space did not become healthy in time"; exit 1
