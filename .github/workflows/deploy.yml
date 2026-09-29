@@ -80,7 +80,16 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE: ${{ vars.HF_SPACE }}
         run: |
+          # Fail fast with a readable message when the configuration is missing.
+          if [ -z "$HF_SPACE" ]; then
+            echo "::error::Variable HF_SPACE is empty (expected e.g. owner/space-name)"; exit 1
+          fi
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::Secret HF_TOKEN is empty: add it as a SECRET of environment 'production'"; exit 1
+          fi
           pip install huggingface_hub
+          python -c "from huggingface_hub import whoami; print('Authenticated on Hugging Face as', whoami()['name'])"
+          echo "Deploying to Space: $HF_SPACE"
           mkdir -p space
           cp -r Dockerfile requirements.txt src models space/
           cp deploy/space_README.md space/README.md
