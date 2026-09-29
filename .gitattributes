@@ -1,0 +1,7 @@
+# LF everywhere (Makefile, shell steps in workflows, Docker).
+* text=auto eol=lf
+# Keep the dataset byte-identical so its SHA-256 matches data/README.md on every OS.
+data/raw/*.csv -text
+*.jpg binary
+*.png binary
+*.gif binary

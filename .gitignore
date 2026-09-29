@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Pipeline outputs (produced by CI, shipped as artifacts)
+models/*
+!models/.gitkeep
+metrics/*
+!metrics/.gitkeep
+
+# Raw image archive (never committed, too large)
+data/images/
+*.zip
+
+# Local env / secrets
+.env
+.env.*
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
