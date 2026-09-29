@@ -17,5 +17,9 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    # The stack is pinned to Python 3.11: only take patch/security updates of the base image.
+    ignore:
+      - dependency-name: "python"
+        versions: [">=3.12"]
     commit-message:
       prefix: "chore(docker)"
