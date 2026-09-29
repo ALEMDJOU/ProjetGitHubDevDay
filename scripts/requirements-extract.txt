@@ -1,0 +1,4 @@
+# Only for the one-off image -> CSV feature extraction (not used in CI or the API).
+-r ../requirements.txt
+openpyxl==3.1.5
+pillow==12.3.0
