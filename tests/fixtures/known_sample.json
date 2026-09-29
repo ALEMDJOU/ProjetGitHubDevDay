@@ -1,0 +1,12 @@
+{
+  "storage_group": "T20",
+  "day": 5,
+  "l_mean": 36.1304,
+  "l_std": 8.8149,
+  "a_mean": 6.0232,
+  "a_std": 3.8616,
+  "b_mean": 3.1052,
+  "b_std": 5.3169,
+  "dark_fraction": 0.2505,
+  "fruit_fraction": 0.2318
+}
