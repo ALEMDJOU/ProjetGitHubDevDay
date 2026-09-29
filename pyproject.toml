@@ -1,0 +1,22 @@
+[project]
+name = "avoripe"
+version = "0.1.0"
+description = "Avocado ripeness classifier wrapped in a fully automated MLOps pipeline."
+requires-python = ">=3.11,<3.12"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
