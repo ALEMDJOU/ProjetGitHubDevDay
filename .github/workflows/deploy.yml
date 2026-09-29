@@ -8,8 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       run_id:
-        description: "Run ID of a successful 'Train & Evaluate' run to deploy"
-        required: true
+        description: "Run ID of a 'Train & Evaluate' run (empty = latest successful run on main)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -37,11 +38,33 @@ jobs:
         with:
           ref: ${{ env.SOURCE_SHA }}
 
+      # Manual run without run_id: pick the latest successful training run on main.
+      - name: Resolve training run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID="$(echo "$RUN_ID" | tr -d '[:space:]')"
+          if [ -z "$RUN_ID" ]; then
+            RUN_ID=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow train.yml --branch main \
+              --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          fi
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::No successful 'Train & Evaluate' run found on main"; exit 1
+          fi
+          COUNT=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" \
+            --jq '[.artifacts[] | select(.name == "model" and .expired == false)] | length' || echo 0)
+          if [ "$COUNT" != "1" ]; then
+            echo "::error::Run $RUN_ID has no 'model' artifact. Use the ID of a green 'Train & Evaluate' run."
+            exit 1
+          fi
+          echo "Deploying model from Train & Evaluate run $RUN_ID"
+          echo "TRAIN_RUN_ID=$RUN_ID" >> "$GITHUB_ENV"
+
       - name: Download model artifact
         uses: actions/download-artifact@v4
         with:
           name: model
-          run-id: ${{ env.RUN_ID }}
+          run-id: ${{ env.TRAIN_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: artifact
 
@@ -100,7 +123,7 @@ jobs:
               folder_path="space",
               repo_id=os.environ["HF_SPACE"],
               repo_type="space",
-              commit_message=f"Deploy {os.environ['SOURCE_SHA'][:7]} (run {os.environ['RUN_ID']})",
+              commit_message=f"Deploy {os.environ['SOURCE_SHA'][:7]} (run {os.environ['TRAIN_RUN_ID']})",
               # Remove stale code and the default files of a freshly created Space.
               delete_patterns=["src/**", "index.html", "style.css"],
           )
