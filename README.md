@@ -1,4 +1,4 @@
-<!-- TODO(owner): replace YOUR_GITHUB_USER/avocado-ripeness-mlops and YOUR_HF_USER/avocado-ripeness below. -->
+<!-- TODO(owner): replace YOUR_HF_USER/avocado-ripeness below with the real Hugging Face Space. -->
 
 <div align="center">
 
@@ -11,9 +11,9 @@ GitHub Actions pipeline around it.
 Built for the GitHub Dev Day talk *"Accelerating MLOps: Automating the AI pipeline with
 GitHub Actions and Copilot"*.
 
-[![CI](https://github.com/YOUR_GITHUB_USER/avocado-ripeness-mlops/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_GITHUB_USER/avocado-ripeness-mlops/actions/workflows/ci.yml)
-[![Train & Evaluate](https://github.com/YOUR_GITHUB_USER/avocado-ripeness-mlops/actions/workflows/train.yml/badge.svg)](https://github.com/YOUR_GITHUB_USER/avocado-ripeness-mlops/actions/workflows/train.yml)
-[![Deploy](https://github.com/YOUR_GITHUB_USER/avocado-ripeness-mlops/actions/workflows/deploy.yml/badge.svg)](https://github.com/YOUR_GITHUB_USER/avocado-ripeness-mlops/actions/workflows/deploy.yml)
+[![CI](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/ci.yml/badge.svg)](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/ci.yml)
+[![Train & Evaluate](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/train.yml/badge.svg)](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/train.yml)
+[![Deploy](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/deploy.yml/badge.svg)](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/deploy.yml)
 ![Python 3.11](https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Open in Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Open%20in-Spaces-yellow)](https://huggingface.co/spaces/YOUR_HF_USER/avocado-ripeness)
@@ -69,7 +69,7 @@ More details in [`docs/architecture.md`](docs/architecture.md).
 ## ⚡ Quick start
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USER/avocado-ripeness-mlops.git && cd avocado-ripeness-mlops
+git clone https://github.com/ALEMDJOU/ProjetGitHubDevDay.git && cd ProjetGitHubDevDay
 python3.11 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 make install
 make train evaluate
@@ -163,7 +163,7 @@ Almost all errors are between **neighbouring** stages.
 `ripe_first_stage` · `ripe_second_stage` · `overripe`.
 
 The latest numbers from CI are in the job summary of the most recent
-[Train & Evaluate run](https://github.com/YOUR_GITHUB_USER/avocado-ripeness-mlops/actions/workflows/train.yml).
+[Train & Evaluate run](https://github.com/ALEMDJOU/ProjetGitHubDevDay/actions/workflows/train.yml).
 
 ## 🤖 How GitHub Copilot is used
 
