@@ -1,4 +1,10 @@
+# One command per pipeline stage, identical locally and in CI.
+# Typical flow: make install -> make all -> make run
+# Windows without make: see the "No make?" section of the README.
+
+# Override with `make PYTHON=python3.11 ...` if needed.
 PYTHON ?= python
+# The package lives in src/ (not installed): make it importable for every target.
 export PYTHONPATH := src
 
 .PHONY: install lint format test train evaluate run docker all
@@ -31,4 +37,5 @@ docker: ## Build and run the Docker image
 	docker build -t avoripe:local .
 	docker run --rm -p 7860:7860 avoripe:local
 
+# Full local check, same order as the CI + Train & Evaluate workflows.
 all: lint test train evaluate

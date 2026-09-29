@@ -1,3 +1,6 @@
+# CI: runs on every pull request and every push to main.
+# Job 1 checks code quality and tests; job 2 proves the Docker image builds and starts.
+# Nothing is trained for real or deployed here: that is train.yml / deploy.yml.
 name: CI
 
 on:
@@ -5,13 +8,16 @@ on:
   push:
     branches: [main]
 
+# Least privilege: CI only needs to read the code.
 permissions:
   contents: read
 
+# A new push to the same branch/PR cancels the run in progress (saves runner time).
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# The package lives in src/ and is not pip-installed.
 env:
   PYTHONPATH: src
 
@@ -25,6 +31,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          # Re-use downloaded wheels between runs; the cache key follows the pinned files.
           cache: pip
           cache-dependency-path: requirements*.txt
       - name: Install dependencies
@@ -33,12 +40,14 @@ jobs:
         run: ruff check .
       - name: Ruff format check
         run: ruff format --check .
+      # Fails if coverage drops under 80% (tests use real rows only, no network).
       - name: Tests with coverage
         run: pytest --cov=src --cov-report=term-missing --cov-fail-under=80
 
   docker:
     name: Docker build & smoke test
     runs-on: ubuntu-latest
+    # Only build the image once lint and tests are green.
     needs: lint-test
     timeout-minutes: 10
     steps:
@@ -55,6 +64,8 @@ jobs:
           python -m avoripe.train
       - name: Build image
         run: docker build -t avoripe:ci .
+      # Start the container like in production and poll /health for up to 30 seconds.
+      # On failure, print the container logs to see why it did not start.
       - name: Run container and check /health
         run: |
           docker run -d --name avoripe -p 7860:7860 avoripe:ci

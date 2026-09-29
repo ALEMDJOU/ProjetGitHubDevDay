@@ -1,3 +1,5 @@
+# Monitor: every 6 hours, check that the live API is up AND still predicts correctly.
+# If either check fails, open a GitHub issue with a link to the failing run.
 name: Monitor
 
 on:
@@ -5,6 +7,7 @@ on:
     - cron: "0 */6 * * *"
   workflow_dispatch:
 
+# Read the repo (for the fixture file) and open issues on failure.
 permissions:
   contents: read
   issues: write
@@ -30,6 +33,7 @@ jobs:
             -d @tests/fixtures/known_sample.json | tee prediction.json
           python3 -c "import json; p = json.load(open('prediction.json')); assert p['ripeness'] in p['probabilities']"
 
+      # Try with a `monitoring` label first; if the label does not exist, retry without it.
       - name: Open an issue on failure
         if: failure()
         env:

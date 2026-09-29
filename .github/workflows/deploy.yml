@@ -1,3 +1,9 @@
+# Deploy: ships a model that passed the quality gate.
+# 1. find the green "Train & Evaluate" run and download its `model` artifact;
+# 2. build the Docker image (model + API) and push it to GHCR, tagged with the commit SHA;
+# 3. tell Render to run that exact image (deploy hook), then wait until the live /health
+#    reports the same SHA;
+# 4. optionally push the same files to a Hugging Face Space (only if HF_SPACE is set).
 name: Deploy
 
 on:
@@ -12,6 +18,7 @@ on:
         required: false
         default: ""
 
+# Least privilege: read code, read another run's artifact, push the image to GHCR.
 permissions:
   contents: read
   actions: read # download the artifact from another run
@@ -27,6 +34,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # The `production` environment holds the deploy secrets and can require an approval.
     environment:
       name: production
       url: ${{ vars.APP_URL }}

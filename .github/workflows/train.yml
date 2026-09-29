@@ -1,6 +1,10 @@
+# Train & Evaluate: trains the model, scores it and applies the quality gate.
+# A green run uploads the `model` artifact, which triggers deploy.yml automatically.
+# A red run (macro F1 < MIN_F1) uploads nothing, so nothing gets deployed.
 name: Train & Evaluate
 
 on:
+  # Retrain only when something that can change the model changes.
   push:
     branches: [main]
     paths:
@@ -11,8 +15,10 @@ on:
       - "src/avoripe/evaluate.py"
       - "requirements.txt"
       - ".github/workflows/train.yml"
+  # Weekly retrain: catches dependency drift even when nobody pushes.
   schedule:
     - cron: "0 6 * * 1" # every Monday 06:00 UTC
+  # Manual run from the Actions tab, with an optional stricter/looser gate.
   workflow_dispatch:
     inputs:
       min_f1:
@@ -23,6 +29,7 @@ on:
 permissions:
   contents: read
 
+# Never cancel a training run halfway: queue the next one instead.
 concurrency:
   group: train-${{ github.ref }}
   cancel-in-progress: false
@@ -46,10 +53,13 @@ jobs:
         run: pip install -r requirements.txt
       - name: Train
         run: python -m avoripe.train
+      # Exits with code 1 when macro F1 < MIN_F1, which stops the workflow here.
+      # MIN_F1 priority: manual input > repository variable > default in config.py.
       - name: Evaluate (quality gate)
         env:
           MIN_F1: ${{ github.event.inputs.min_f1 || vars.MIN_F1 }}
         run: python -m avoripe.evaluate
+      # always(): show the metrics table even when the gate failed, to explain why.
       - name: Publish report to job summary
         if: always()
         run: |
@@ -58,6 +68,7 @@ jobs:
           else
             echo "No report produced." >> "$GITHUB_STEP_SUMMARY"
           fi
+      # Only reached when the gate passed. deploy.yml downloads this artifact.
       - name: Upload model artifact
         uses: actions/upload-artifact@v4
         with:
