@@ -7,7 +7,7 @@ PYTHON ?= python
 # The package lives in src/ (not installed): make it importable for every target.
 export PYTHONPATH := src
 
-.PHONY: install lint format test train evaluate run docker all
+.PHONY: install lint format test train evaluate run ui docker all
 
 install: ## Install runtime + dev dependencies
 	$(PYTHON) -m pip install --upgrade pip
@@ -32,6 +32,10 @@ evaluate: ## Evaluate + quality gate (MIN_F1) -> metrics/
 
 run: ## Serve the API on http://localhost:7860
 	uvicorn avoripe.api:app --host 0.0.0.0 --port 7860
+
+ui: ## Streamlit UI on http://localhost:8501 (calls the live API; override AVORIPE_API_URL)
+	$(PYTHON) -m pip install -r requirements-ui.txt
+	streamlit run app/streamlit_app.py
 
 docker: ## Build and run the Docker image
 	docker build -t avoripe:local .

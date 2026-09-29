@@ -11,6 +11,7 @@ tests
 docs
 assets
 scripts
+app
 data/images
 metrics
 *.zip

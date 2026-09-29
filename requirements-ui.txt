@@ -1,0 +1,6 @@
+# Streamlit UI only (app/streamlit_app.py). Not used by the API image or the pipeline.
+numpy==2.4.6
+pandas==3.0.6
+pillow==12.3.0
+requests==2.34.2
+streamlit==1.64.0

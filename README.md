@@ -104,6 +104,20 @@ uvicorn avoripe.api:app --host 0.0.0.0 --port 7860
 
 </details>
 
+### 🖥️ Streamlit UI
+
+Pick a real photo of the dataset (or upload one), and the UI extracts its colour features with
+the same code as the dataset, sends them to the **live API** and shows the predicted stage with
+the probability of each stage. For dataset photos it also shows the true label.
+
+```bash
+make ui                                                 # http://localhost:8501
+```
+
+It calls `https://avocado-ripeness.onrender.com` by default; set `AVORIPE_API_URL` to use a
+local API (`make run`). The dataset photos must be in `data/images/` (see
+[`data/README.md`](data/README.md)); uploads work without them.
+
 | Endpoint | What it does |
 |---|---|
 | `GET /health` | Liveness + whether the model is loaded |
@@ -223,12 +237,14 @@ Schema, checksums and how to rebuild the CSV: [`data/README.md`](data/README.md)
 │   ├── ISSUE_TEMPLATE/       # bug report, feature request
 │   └── copilot-instructions.md
 ├── data/raw/                 # real feature table (CSV) + README with source and license
+├── app/streamlit_app.py      # Streamlit UI: photo -> features -> live API -> stage
 ├── scripts/                  # one-off feature extraction from the original photos
 ├── src/avoripe/
 │   ├── config.py             # paths, constants, feature names
 │   ├── data.py               # load, validate, grouped + stratified split
 │   ├── train.py              # sklearn Pipeline -> models/model.joblib
 │   ├── evaluate.py           # metrics, report, quality gate (exit 1)
+│   ├── features.py           # photo -> colour features (shared by script and UI)
 │   ├── schemas.py            # Pydantic request/response models
 │   └── api.py                # FastAPI: /health, /predict, /metrics
 ├── tests/                    # pytest, real-row fixtures, no network

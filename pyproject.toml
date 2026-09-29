@@ -11,7 +11,7 @@ where = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["src", "tests", "scripts"]
+src = ["src", "tests", "scripts", "app"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "N", "SIM"]

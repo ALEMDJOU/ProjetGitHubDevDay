@@ -25,6 +25,10 @@ statistics computed from the pixels of the fruit by
 
 The raw archive (~418 MB) is **not** committed and is **not** needed by CI.
 
+**Local photos for the Streamlit UI:** extract the JPEGs (flat, no sub-folder) into
+`data/images/`, e.g. `data/images/T20_d05_001_a_3.jpg`. This folder is git-ignored and
+docker-ignored. One photo, `tests/fixtures/T20_d05_001_a_3.jpg`, is committed for the tests.
+
 | File | SHA-256 |
 |---|---|
 | `raw/avocado_features.csv` | `b0c205e4ea72039634aa2814d5503b4b47fa42db09c094ee51cafdc67977743b` |
