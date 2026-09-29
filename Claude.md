@@ -132,6 +132,7 @@ When the pipeline works, write a **beautiful, professional, visually polished `R
 
 - Work in small steps; after each step, show what changed and the exact command to verify it.
 - Use Conventional Commits (`feat:`, `fix:`, `ci:`, `docs:`, `test:`, `chore:`) and small, focused commits.
+- **Commit attribution:** commits are authored by the repository owner. End every commit message with `Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>`. Never add a Claude or Anthropic co-author trailer or any "Generated with Claude" line to commits or PR descriptions.
 - Ask me before making a choice that changes the dataset, target classes, stack or deployment target. Otherwise decide, state your assumption in one line, and continue.
 - Be direct and practical: no filler, no long explanations unless asked.
 - If something fails (tests, workflow, deploy), show the real error and fix the cause; do not weaken tests or the quality gate to make it pass.
