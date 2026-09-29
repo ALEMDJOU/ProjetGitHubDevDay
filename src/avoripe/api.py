@@ -11,6 +11,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 
 from avoripe import __version__, config
 from avoripe.schemas import AvocadoFeatures, HealthResponse, MetricsResponse, Prediction
@@ -52,6 +53,12 @@ app = FastAPI(
     version=__version__,
     lifespan=lifespan,
 )
+
+
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    """Send visitors of the bare URL to the interactive API docs."""
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health", response_model=HealthResponse)

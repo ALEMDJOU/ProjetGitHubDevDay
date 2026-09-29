@@ -37,6 +37,13 @@ def test_health(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     assert response.json() == {"status": "ok", "model_loaded": True, "version": "abc1234"}
 
 
+def test_root_redirects_to_docs(client: TestClient) -> None:
+    """The bare URL redirects to the Swagger UI."""
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 307
+    assert response.headers["location"] == "/docs"
+
+
 def test_predict_happy_path(client: TestClient, real_df: pd.DataFrame) -> None:
     """/predict returns a known class and probabilities summing to 1."""
     response = client.post("/predict", json=real_payload(real_df))
