@@ -18,9 +18,9 @@ jobs:
     name: Check live service
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Same environment as deploy.yml, so the job reads the APP_URL defined on `production`.
+    environment: production
     env:
-      # Must be a REPOSITORY variable: this job has no environment, so variables defined
-      # only on the `production` environment are not visible here.
       APP_URL: ${{ vars.APP_URL }}
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
       - name: Check configuration
         run: |
           if [ -z "$APP_URL" ]; then
-            echo "::error::Repository variable APP_URL is empty (Settings > Variables > Repository variables)"
+            echo "::error::Variable APP_URL is empty: set it on the production environment"
             exit 1
           fi
 

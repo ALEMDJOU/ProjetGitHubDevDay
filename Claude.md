@@ -93,7 +93,7 @@ Rules for all workflows: minimal `permissions:` per workflow, `timeout-minutes` 
 
 | `Never_Sleep.yml` | cron every 10 min, manual | Ping `/health` so the Render free instance never spins down (it sleeps after 15 min idle). |
 
-Secrets and variables to document (not to create): secret `RENDER_DEPLOY_HOOK_URL` (environment `production`); variables `APP_URL` (public Render URL, used by deploy, monitor and Never_Sleep), `MIN_F1`; optional `HF_SPACE` + secret `HF_TOKEN` for the Hugging Face target.
+Secrets and variables to document (not to create): secret `RENDER_DEPLOY_HOOK_URL` (environment `production`); variables `APP_URL` (public Render URL, on environment `production`; deploy, monitor and Never_Sleep jobs all use that environment), `MIN_F1`; optional `HF_SPACE` + secret `HF_TOKEN` for the Hugging Face target.
 
 ## Makefile targets
 
