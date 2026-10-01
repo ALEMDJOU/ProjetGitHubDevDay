@@ -271,7 +271,7 @@ Set these in **Settings → Secrets and variables → Actions** (never in code):
 | Name | Kind | Scope | Used by | Example |
 |---|---|---|---|---|
 | `RENDER_DEPLOY_HOOK_URL` | Secret | Environment `production` | `deploy.yml` | Deploy hook of the Render service (Settings → Deploy Hook) |
-| `APP_URL` | Variable | Repository | `deploy.yml`, `monitor.yml`, `Never_Sleep.yml` | `https://avocado-ripeness.onrender.com` |
+| `APP_URL` | Variable | **Repository** (not only `production`: Monitor and Never Sleep have no environment) | `deploy.yml`, `monitor.yml`, `Never_Sleep.yml` | `https://avocado-ripeness.onrender.com` |
 | `HF_SPACE` + `HF_TOKEN` | Variable + Secret | Optional | `deploy.yml` | Also push to a Hugging Face Space (Docker SDK) |
 | `MIN_F1` | Variable | Repository | `train.yml` | `0.75` |
 

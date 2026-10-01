@@ -1,5 +1,6 @@
 # Monitor: every 6 hours, check that the live API is up AND still predicts correctly.
-# If either check fails, open a GitHub issue with a link to the failing run.
+# If a check fails, open a GitHub issue (or comment on the one already open) with a link
+# to the failing run.
 name: Monitor
 
 on:
@@ -16,34 +17,46 @@ jobs:
   monitor:
     name: Check live service
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     env:
+      # Must be a REPOSITORY variable: this job has no environment, so variables defined
+      # only on the `production` environment are not visible here.
       APP_URL: ${{ vars.APP_URL }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check configuration
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "::error::Repository variable APP_URL is empty (Settings > Variables > Repository variables)"
+            exit 1
+          fi
+
+      # -m 90: a sleeping free instance can take ~1 minute to answer the first request.
       - name: Check /health
-        run: curl -fsS --retry 3 --retry-delay 10 "$APP_URL/health" | tee health.json | grep -q '"model_loaded":true'
+        run: curl -fsS -m 90 --retry 3 --retry-delay 10 "$APP_URL/health" | tee health.json | grep -q '"model_loaded":true'
 
       # Known prediction: one real photo from the dataset, stored in tests/fixtures.
       - name: Check a known prediction
         run: |
-          curl -fsS --retry 3 --retry-delay 10 -X POST "$APP_URL/predict" \
+          curl -fsS -m 90 --retry 3 --retry-delay 10 -X POST "$APP_URL/predict" \
             -H "Content-Type: application/json" \
             -d @tests/fixtures/known_sample.json | tee prediction.json
           python3 -c "import json; p = json.load(open('prediction.json')); assert p['ripeness'] in p['probabilities']"
 
-      # Try with a `monitoring` label first; if the label does not exist, retry without it.
-      - name: Open an issue on failure
+      # One open issue per incident: comment on it if it exists, otherwise create it.
+      - name: Report failure in an issue
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          gh issue create \
-            --title "🚨 Monitor: live service check failed ($(date -u +%Y-%m-%dT%H:%MZ))" \
-            --body "The scheduled check of \`$APP_URL\` failed. See the run: $RUN_URL" \
-            --label monitoring || \
-          gh issue create \
-            --title "🚨 Monitor: live service check failed ($(date -u +%Y-%m-%dT%H:%MZ))" \
-            --body "The scheduled check of \`$APP_URL\` failed. See the run: $RUN_URL"
+          TITLE="🚨 Monitor: live service check failed"
+          BODY="Check of \`${APP_URL:-<APP_URL is empty>}\` failed at $(date -u +%Y-%m-%dT%H:%MZ). Run: $RUN_URL"
+          OPEN=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$TITLE\" in:title" \
+            --json number --jq '.[0].number')
+          if [ -n "$OPEN" ]; then
+            gh issue comment "$OPEN" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY"
+          fi

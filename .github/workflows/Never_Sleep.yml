@@ -16,13 +16,21 @@ concurrency:
 jobs:
   ping:
     name: Keep the service awake
-    if: vars.APP_URL != ''
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    env:
+      # Must be a REPOSITORY variable: this job has no environment, so variables defined
+      # only on the `production` environment are not visible here.
+      APP_URL: ${{ vars.APP_URL }}
     steps:
-      - name: Ping /health
-        env:
-          APP_URL: ${{ vars.APP_URL }}
+      - name: Check configuration
         run: |
-          # A cold start can take ~1 minute on the free plan, hence the retries.
-          curl -fsS -m 60 --retry 3 --retry-delay 10 --retry-all-errors "$APP_URL/health"
+          if [ -z "$APP_URL" ]; then
+            echo "::error::Repository variable APP_URL is empty (Settings > Variables > Repository variables)"
+            exit 1
+          fi
+
+      - name: Ping /health
+        run: |
+          # A cold start can take ~1 minute on the free plan, hence the long timeout and retries.
+          curl -fsS -m 90 --retry 3 --retry-delay 10 --retry-all-errors "$APP_URL/health"
