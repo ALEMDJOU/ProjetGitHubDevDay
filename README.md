@@ -24,10 +24,26 @@ GitHub Actions and Copilot"*.
 
 ## 📸 Demo
 
-> **TODO(owner): add a real screenshot or GIF of the live API.**
-> 1. Open `https://avocado-ripeness.onrender.com/docs`, run `POST /predict` with the example.
-> 2. Save it as `assets/demo.gif` (or `.png`) and replace this block with:
->    `![Live API demo](assets/demo.gif)`
+### RipeVision, the Streamlit interface
+
+<!-- DEMO VIDEO: drag and drop the .mp4 on the empty line below (GitHub web editor). -->
+
+> [!NOTE]
+> **TODO(owner): add the RipeVision demo video here.**
+> 1. Run the UI (`make ui`, or on Windows `streamlit run app/streamlit_app.py`) and record
+>    30 to 60 seconds with the Xbox Game Bar (<kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd>) or OBS:
+>    pick a photo, click **Prédire**, show the result, then the *Résultats* and *Modèle* tabs.
+> 2. Keep the `.mp4` under **10 MB** (GitHub's limit for videos on free plans).
+> 3. On GitHub, open `README.md`, click the pencil icon, and **drag the `.mp4` onto the empty
+>    line under the `DEMO VIDEO` comment**. GitHub uploads it and inserts a
+>    `https://github.com/user-attachments/assets/...` link, which renders as a video player.
+> 4. Commit, then delete this note.
+>
+> A video file committed in `assets/` does **not** play inside a README: use the upload above.
+
+### The API (FastAPI docs)
+
+![Screenshot of the Avocado Ripeness API docs showing the Swagger UI and prediction endpoints](assets/demo.png)
 
 ## 💡 Why this project
 
