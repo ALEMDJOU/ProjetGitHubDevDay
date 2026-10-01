@@ -26,20 +26,9 @@ GitHub Actions and Copilot"*.
 
 ### RipeVision, the Streamlit interface
 
-<!-- DEMO VIDEO: drag and drop the .mp4 on the empty line below (GitHub web editor). -->
+https://github.com/ALEMDJOU/ProjetGitHubDevDay/raw/main/assets/interface.mp4
 
-> [!NOTE]
-> **TODO(owner): add the RipeVision demo video here.**
-> 1. Run the UI (`make ui`, or on Windows `streamlit run app/streamlit_app.py`) and record
->    30 to 60 seconds with the Xbox Game Bar (<kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd>) or OBS:
->    pick a photo, click **Predict**, show the result, then the *Results* and *Model* tabs.
-> 2. Keep the `.mp4` under **10 MB** (GitHub's limit for videos on free plans).
-> 3. On GitHub, open `README.md`, click the pencil icon, and **drag the `.mp4` onto the empty
->    line under the `DEMO VIDEO` comment**. GitHub uploads it and inserts a
->    `https://github.com/user-attachments/assets/...` link, which renders as a video player.
-> 4. Commit, then delete this note.
->
-> A video file committed in `assets/` does **not** play inside a README: use the upload above.
+[Watch the RipeVision demo video](assets/interface.mp4) (30 s): pick a photo, predict, browse the results.
 
 ### The API (FastAPI docs)
 
