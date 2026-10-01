@@ -38,6 +38,8 @@ from avoripe.features import image_features  # noqa: E402
 # Settings
 # ---------------------------------------------------------------------------
 DEFAULT_API_URL = "https://avocado-ripeness.onrender.com"
+# Backend URL: not shown in the UI. Override with AVORIPE_API_URL (e.g. http://localhost:7860).
+API_URL = os.getenv("AVORIPE_API_URL", DEFAULT_API_URL).rstrip("/")
 IMAGES_DIR = ROOT_DIR / "data" / "images"  # local copy of the dataset photos (git-ignored)
 REQUEST_TIMEOUT_S = 90  # a sleeping free Render instance can take ~1 minute to wake up
 
@@ -241,31 +243,29 @@ def summarize(prediction: dict) -> dict:
 # ---------------------------------------------------------------------------
 # Sidebar
 # ---------------------------------------------------------------------------
-def render_sidebar(metrics: dict | None) -> tuple[str, float]:
-    """Render settings, model info and API status; return (API URL, confidence threshold)."""
+def render_sidebar(metrics: dict | None) -> float:
+    """Render settings, model info and service status; return the confidence threshold."""
     with st.sidebar:
         st.markdown("### RipeVision")
         with st.expander("Paramètres", icon=":material/tune:", expanded=True):
             threshold = st.slider("Seuil de confiance", 0.5, 1.0, 0.75, 0.05)
-            api_url = st.text_input("URL de l'API", os.getenv("AVORIPE_API_URL", DEFAULT_API_URL))
         with st.expander("Modèle", icon=":material/info:"):
             st.markdown("**Architecture** : Random Forest (100 arbres), scikit-learn")
             st.markdown("**Données** : 14 710 photos réelles de 478 avocats Hass")
             if metrics:
                 st.markdown(f"**Accuracy** : {metrics['accuracy']:.1%}")
         st.divider()
-        render_api_status(api_url.rstrip("/"))
-    return api_url.rstrip("/"), threshold
+        render_api_status(API_URL)
+    return threshold
 
 
 def render_api_status(api_url: str) -> None:
-    """Show whether the live API answers, and which commit is deployed."""
+    """Show whether the prediction service answers and has its model loaded."""
     health = check_health(api_url)
     if health and health.get("model_loaded"):
-        version = str(health.get("version", "?"))[:7]
-        st.success(f"API en ligne, version {version}", icon=":material/task_alt:")
+        st.success("Service de prédiction en ligne", icon=":material/task_alt:")
     else:
-        st.error("API injoignable ou modèle non chargé", icon=":material/error:")
+        st.error("Service de prédiction indisponible", icon=":material/error:")
 
 
 # ---------------------------------------------------------------------------
@@ -464,7 +464,7 @@ def main() -> None:
     inject_css()
     render_header()
     metrics = load_model_metrics()
-    api_url, threshold = render_sidebar(metrics)
+    threshold = render_sidebar(metrics)
     analyse, results, model = st.tabs(
         [
             ":material/photo_camera: Analyse",
@@ -473,7 +473,7 @@ def main() -> None:
         ]
     )
     with analyse:
-        render_analysis_tab(load_catalog(), api_url, threshold)
+        render_analysis_tab(load_catalog(), API_URL, threshold)
     with results:
         render_results_tab()
     with model:

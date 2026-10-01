@@ -130,7 +130,7 @@ Theme in [`.streamlit/config.toml`](.streamlit/config.toml); no result is ever s
 make ui                                                 # http://localhost:8501
 ```
 
-It calls `https://avocado-ripeness.onrender.com` by default; set `AVORIPE_API_URL` to use a
+It calls `https://avocado-ripeness.onrender.com` by default (the URL is not shown in the UI); set `AVORIPE_API_URL` to use a
 local API (`make run`). The dataset photos must be in `data/images/` (see
 [`data/README.md`](data/README.md)); uploads work without them.
 
