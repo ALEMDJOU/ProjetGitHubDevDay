@@ -12,6 +12,7 @@ docs
 assets
 scripts
 app
+.streamlit
 data/images
 metrics
 *.zip

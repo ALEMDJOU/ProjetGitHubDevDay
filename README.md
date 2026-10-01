@@ -116,11 +116,15 @@ streamlit run app/streamlit_app.py
 | `GET /metrics` | Request count, mean latency, distribution of predicted classes |
 | `GET /docs` | Interactive Swagger UI |
 
-### 🖥️ Streamlit UI
+### 🖥️ Streamlit UI: RipeVision
 
-Pick a real photo of the dataset (or upload one), and the UI extracts its colour features with
-the same code as the dataset, sends them to the **live API** and shows the predicted stage with
-the probability of each stage. For dataset photos it also shows the true label.
+Upload a photo (or pick a real one from the dataset), click **Prédire**, and the UI extracts
+its colour features with the same code as the dataset and sends them to the **live API**.
+The model answers with the 5 real stages; the UI groups them into 3 classes for readability
+(**Unripe** = stages 1-2, **Ripe** = 3-4, **Overripe** = 5) and shows the confidence, a
+recommendation, the exact stage and, for dataset photos, the true label. Tabs: *Analyse*,
+*Résultats* (session history) and *Modèle* (real metrics from `metrics/metrics.json`).
+Theme in [`.streamlit/config.toml`](.streamlit/config.toml); no result is ever simulated.
 
 ```bash
 make ui                                                 # http://localhost:8501

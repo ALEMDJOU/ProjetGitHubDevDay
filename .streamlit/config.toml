@@ -1,0 +1,17 @@
+# RipeVision theme (Streamlit reads this file from the folder you run `streamlit run` in,
+# i.e. the repository root with `make ui`). Fonts and finer styling are injected as CSS
+# by inject_css() in app/streamlit_app.py.
+
+[theme]
+base = "light"
+primaryColor = "#52B788"              # buttons, sliders, progress bars, focus rings
+backgroundColor = "#F1FAEE"           # main page background
+secondaryBackgroundColor = "#E3F2E6"  # inputs, expanders, code blocks
+textColor = "#212529"
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"               # hide developer menu items during the demo
+
+[browser]
+gatherUsageStats = false
