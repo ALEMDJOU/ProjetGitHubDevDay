@@ -1,9 +1,0 @@
--r requirements.txt
-# Install the avoripe package itself in editable mode (code changes apply immediately).
--e .
-httpx==0.28.1
-# Needed by tests/test_features.py to decode the real test photo.
-pillow==12.3.0
-pytest==9.1.1
-pytest-cov==7.1.0
-ruff==0.16.9

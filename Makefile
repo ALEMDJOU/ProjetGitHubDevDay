@@ -10,9 +10,9 @@ export PYTHONPATH := src
 
 .PHONY: install lint format test train evaluate run ui docker all
 
-install: ## Install runtime + dev dependencies
+install: ## Install all dependencies + the avoripe package
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -r requirements-dev.txt
+	$(PYTHON) -m pip install -r requirements.txt
 
 lint: ## Ruff lint + format check
 	ruff check .
@@ -35,7 +35,6 @@ run: ## Serve the API on http://localhost:7860
 	uvicorn avoripe.api:app --host 0.0.0.0 --port 7860
 
 ui: ## Streamlit UI on http://localhost:8501 (calls the live API; override AVORIPE_API_URL)
-	$(PYTHON) -m pip install -r requirements-ui.txt
 	streamlit run app/streamlit_app.py
 
 docker: ## Build and run the Docker image

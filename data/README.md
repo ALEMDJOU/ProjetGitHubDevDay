@@ -86,7 +86,7 @@ saturation ≤ 0.18 in HSV).
 ## Rebuild the CSV from scratch
 
 ```bash
-pip install -r scripts/requirements-extract.txt
+pip install -r requirements.txt
 curl -L -o 3xd9n945v8-1.zip "https://data.mendeley.com/public-api/zip/3xd9n945v8/download/1"
 python scripts/extract_features.py 3xd9n945v8-1.zip   # ~2.5 min on a laptop CPU
 sha256sum data/raw/avocado_features.csv               # should match the table above

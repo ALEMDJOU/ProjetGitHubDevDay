@@ -53,7 +53,7 @@ avocado-ripeness-mlops/
 ├── assets/                     # README images and demo GIF
 ├── Dockerfile  .dockerignore  .gitignore  Makefile
 ├── pyproject.toml              # ruff + pytest config
-├── requirements.txt  requirements-dev.txt
+├── requirements.txt              # single, pinned dependency file
 ├── LICENSE  README.md  CLAUDE.md
 ```
 
@@ -64,7 +64,7 @@ avocado-ripeness-mlops/
 - Put a clear comment above non-obvious blocks so Copilot completes well.
 - All paths and constants in `config.py`; fixed `RANDOM_STATE = 42`; stratified split.
 - Model is a single scikit-learn `Pipeline` (preprocessing + classifier) saved with joblib. Start with `RandomForestClassifier` or `LogisticRegression`; pick whichever is simple and clearly good on the real data.
-- Ruff for lint and format (line length 100). Pin dependency versions in `requirements*.txt` after installing and testing them.
+- Ruff for lint and format (line length 100). Pin dependency versions in the single `requirements.txt` after installing and testing them.
 
 ## Module contracts
 

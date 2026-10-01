@@ -75,7 +75,7 @@ More details in [`docs/architecture.md`](docs/architecture.md).
 
 ## ⚡ Quick start
 
-Requires **Python 3.11** and Git. `pip install -r requirements-dev.txt` also installs the
+Requires **Python 3.11** and Git. `pip install -r requirements.txt` (the single dependency file) also installs the
 project's own package, `avoripe` (from `src/`), so every command below works as is.
 
 **Windows (PowerShell)**, no `make` needed:
@@ -83,7 +83,7 @@ project's own package, `avoripe` (from `src/`), so every command below works as 
 ```powershell
 git clone https://github.com/ALEMDJOU/ProjetGitHubDevDay.git; cd ProjetGitHubDevDay
 py -3.11 -m venv .venv; .\.venv\Scripts\Activate.ps1
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 python -m avoripe.train; python -m avoripe.evaluate
 uvicorn avoripe.api:app --port 7860                      # http://localhost:7860/docs
 ```
@@ -125,14 +125,14 @@ shortcut; on Windows, type the command on the right instead.
 
 | Target | What it does | Same thing without `make` |
 |---|---|---|
-| `make install` | Install dependencies + the `avoripe` package | `pip install -r requirements-dev.txt` |
+| `make install` | Install dependencies + the `avoripe` package | `pip install -r requirements.txt` |
 | `make lint` | Ruff lint + format check | `ruff check .` then `ruff format --check .` |
 | `make format` | Auto-fix and format the code | `ruff check --fix .` then `ruff format .` |
 | `make test` | Tests with the 80% coverage gate | `pytest --cov=src --cov-fail-under=80` |
 | `make train` | Train → `models/model.joblib` | `python -m avoripe.train` |
 | `make evaluate` | Metrics + quality gate → `metrics/` | `python -m avoripe.evaluate` |
 | `make run` | API on port 7860 | `uvicorn avoripe.api:app --port 7860` |
-| `make ui` | Streamlit UI on port 8501 | `pip install -r requirements-ui.txt` then `streamlit run app/streamlit_app.py` |
+| `make ui` | Streamlit UI on port 8501 | `streamlit run app/streamlit_app.py` |
 | `make docker` | Build and run the Docker image | `docker build -t avoripe:local .` then `docker run --rm -p 7860:7860 avoripe:local` |
 | `make all` | lint + test + train + evaluate | the four commands above, in that order |
 
@@ -158,7 +158,7 @@ Theme in [`.streamlit/config.toml`](.streamlit/config.toml); no result is ever s
 
 ```bash
 make ui                                                 # http://localhost:8501
-# Windows: pip install -r requirements-ui.txt; streamlit run app/streamlit_app.py
+# Windows: streamlit run app/streamlit_app.py
 ```
 
 It calls `https://avocado-ripeness.onrender.com` by default (the URL is not shown in the UI); set `AVORIPE_API_URL` to use a
@@ -294,7 +294,7 @@ used by the Streamlit UI): [`data/README.md`](data/README.md).
 ├── tests/                    # pytest, real rows + 1 real photo in fixtures/, no network
 ├── deploy/space_README.md    # optional Hugging Face Space front matter
 ├── docs/                     # architecture, demo script
-├── Dockerfile  Makefile  pyproject.toml  requirements*.txt
+├── Dockerfile  Makefile  pyproject.toml  requirements.txt
 ```
 
 </details>

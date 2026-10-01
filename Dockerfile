@@ -14,7 +14,10 @@ RUN useradd --create-home --uid 1000 app
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Skip the editable `-e .` line: src/ is copied below and found through PYTHONPATH,
+# which keeps this dependency layer cached when only the code changes.
+RUN grep -v '^-e ' requirements.txt > /tmp/requirements.txt \
+    && pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY src/ src/
 COPY models/model.joblib models/model.joblib
