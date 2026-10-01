@@ -52,11 +52,11 @@ STAGE_FAMILY = {
     "overripe": "overripe",
 }
 STAGE_LABELS = {
-    "underripe": "1 - Pas mûr",
-    "breaking": "2 - En cours de maturation",
-    "ripe_first_stage": "3 - Mûr (début)",
-    "ripe_second_stage": "4 - Mûr (fin)",
-    "overripe": "5 - Trop mûr",
+    "underripe": "1 - Underripe",
+    "breaking": "2 - Breaking",
+    "ripe_first_stage": "3 - Ripe (first stage)",
+    "ripe_second_stage": "4 - Ripe (second stage)",
+    "overripe": "5 - Overripe",
 }
 
 # Everything the UI shows for each family: label, colour, icon, verdict, recommendation.
@@ -65,28 +65,28 @@ FAMILIES = {
         "label": "Unripe",
         "color": "#74C69D",
         "icon": ":material/eco:",
-        "message": "Encore un peu de patience.",
-        "advice": "Attendre",
+        "message": "A little more patience.",
+        "advice": "Wait",
     },
     "ripe": {
         "label": "Ripe",
         "color": "#F4A261",
         "icon": ":material/check_circle:",
-        "message": "Parfait, à consommer aujourd'hui.",
-        "advice": "Consommer",
+        "message": "Perfect, eat it today.",
+        "advice": "Eat today",
     },
     "overripe": {
         "label": "Overripe",
         "color": "#6A4C3B",
         "icon": ":material/warning:",
-        "message": "Trop mûr, idéal pour un guacamole.",
+        "message": "Too ripe, perfect for guacamole.",
         "advice": "Guacamole",
     },
 }
-STORAGE_LABELS = {"T10": "T10 - 10 °C", "T20": "T20 - 20 °C", "Tam": "Tam - ambiant"}
+STORAGE_LABELS = {"T10": "T10 - 10 °C", "T20": "T20 - 20 °C", "Tam": "Tam - ambient"}
 
-EMPTY_STATE = "Aucune analyse pour l'instant. Ajoutez une photo pour commencer."
-UNREADABLE_IMAGE = "Image illisible. Essayez un autre format (JPG, PNG)."
+EMPTY_STATE = "No analysis yet. Add a photo to get started."
+UNREADABLE_IMAGE = "Unreadable image. Try another format (JPG, PNG)."
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +181,7 @@ def render_header() -> None:
     """Render the gradient header with the app name and subtitle."""
     st.markdown(
         '<div class="rv-header"><div class="rv-title">RipeVision</div>'
-        '<div class="rv-subtitle">Prédiction de maturité d\'avocat</div></div>',
+        '<div class="rv-subtitle">Avocado ripeness prediction</div></div>',
         unsafe_allow_html=True,
     )
 
@@ -247,13 +247,13 @@ def render_sidebar(metrics: dict | None) -> float:
     """Render settings, model info and service status; return the confidence threshold."""
     with st.sidebar:
         st.markdown("### RipeVision")
-        with st.expander("Paramètres", icon=":material/tune:", expanded=True):
-            threshold = st.slider("Seuil de confiance", 0.5, 1.0, 0.75, 0.05)
-        with st.expander("Modèle", icon=":material/info:"):
-            st.markdown("**Architecture** : Random Forest (100 arbres), scikit-learn")
-            st.markdown("**Données** : 14 710 photos réelles de 478 avocats Hass")
+        with st.expander("Settings", icon=":material/tune:", expanded=True):
+            threshold = st.slider("Confidence threshold", 0.5, 1.0, 0.75, 0.05)
+        with st.expander("Model", icon=":material/info:"):
+            st.markdown("**Architecture:** Random Forest (100 trees), scikit-learn")
+            st.markdown("**Data:** 14,710 real photos of 478 Hass avocados")
             if metrics:
-                st.markdown(f"**Accuracy** : {metrics['accuracy']:.1%}")
+                st.markdown(f"**Accuracy:** {metrics['accuracy']:.1%}")
         st.divider()
         render_api_status(API_URL)
     return threshold
@@ -263,9 +263,9 @@ def render_api_status(api_url: str) -> None:
     """Show whether the prediction service answers and has its model loaded."""
     health = check_health(api_url)
     if health and health.get("model_loaded"):
-        st.success("Service de prédiction en ligne", icon=":material/task_alt:")
+        st.success("Prediction service online", icon=":material/task_alt:")
     else:
-        st.error("Service de prédiction indisponible", icon=":material/error:")
+        st.error("Prediction service unavailable", icon=":material/error:")
 
 
 # ---------------------------------------------------------------------------
@@ -275,17 +275,17 @@ def choose_photo(catalog: pd.DataFrame) -> dict | None:
     """Let the user upload a photo or pick a real one; return photo + storage conditions."""
     source = st.radio(
         "Source",
-        ["Importer une photo", "Photo du dataset"],
+        ["Upload a photo", "Dataset photo"],
         horizontal=True,
         label_visibility="collapsed",
     )
-    if source == "Photo du dataset":
+    if source == "Dataset photo":
         return pick_dataset_photo(catalog)
-    uploaded = st.file_uploader("Photo de l'avocat", type=["jpg", "jpeg", "png"])
+    uploaded = st.file_uploader("Avocado photo", type=["jpg", "jpeg", "png"])
     # The model also uses the storage conditions, which a photo alone does not contain.
     left, right = st.columns(2)
-    group = left.selectbox("Stockage", list(STORAGE_LABELS), format_func=STORAGE_LABELS.get)
-    day = right.number_input("Jours de stockage", min_value=1, max_value=60, value=5)
+    group = left.selectbox("Storage", list(STORAGE_LABELS), format_func=STORAGE_LABELS.get)
+    day = right.number_input("Days in storage", min_value=1, max_value=60, value=5)
     if uploaded is None:
         return None
     return {
@@ -301,17 +301,17 @@ def pick_dataset_photo(catalog: pd.DataFrame) -> dict | None:
     """Pick a real photo of the dataset; its storage conditions and stage are known."""
     if not IMAGES_DIR.exists():
         st.info(
-            "Photos du dataset absentes de data/images (voir data/README.md).",
+            "Dataset photos not found in data/images (see data/README.md).",
             icon=":material/info:",
         )
         return None
-    stage = st.selectbox("Stade réel", list(STAGE_LABELS), format_func=STAGE_LABELS.get)
+    stage = st.selectbox("True stage", list(STAGE_LABELS), format_func=STAGE_LABELS.get)
     names = catalog.loc[catalog["label"] == stage, "file_name"].tolist()
-    name = st.selectbox(f"Photo ({len(names)} disponibles)", names)
+    name = st.selectbox(f"Photo ({len(names)} available)", names)
     row = catalog.loc[catalog["file_name"] == name].iloc[0]
     path = IMAGES_DIR / f"{name}.jpg"
     if not path.exists():
-        st.info(f"Photo {path.name} absente de data/images.", icon=":material/info:")
+        st.info(f"Photo {path.name} not found in data/images.", icon=":material/info:")
         return None
     return {
         "bytes": path.read_bytes(),
@@ -324,23 +324,23 @@ def pick_dataset_photo(catalog: pd.DataFrame) -> dict | None:
 
 def run_analysis(photo: dict, api_url: str) -> dict | None:
     """Extract features, call the API inside a status box; return the summary or None."""
-    with st.status("Analyse en cours…", expanded=True) as status:
-        st.write("Extraction des couleurs de la peau")
+    with st.status("Analyzing...", expanded=True) as status:
+        st.write("Extracting the skin colours")
         try:
             features = image_features(photo["bytes"])
         except (UnidentifiedImageError, OSError, ValueError):
-            status.update(label="Analyse interrompue", state="error")
+            status.update(label="Analysis stopped", state="error")
             st.error(UNREADABLE_IMAGE, icon=":material/error:")
             return None
-        st.write("Interrogation du modèle en ligne")
+        st.write("Querying the live model")
         payload = {"storage_group": photo["group"], "day": photo["day"], **features}
         try:
             result = summarize(call_predict(api_url, payload))
         except (requests.RequestException, ValueError) as error:
-            status.update(label="Analyse interrompue", state="error")
-            st.error(f"L'API n'a pas pu répondre : {error}", icon=":material/error:")
+            status.update(label="Analysis stopped", state="error")
+            st.error(f"The prediction service did not answer: {error}", icon=":material/error:")
             return None
-        status.update(label="Analyse terminée", state="complete", expanded=False)
+        status.update(label="Analysis complete", state="complete", expanded=False)
     return {**result, "payload": payload, "photo": photo["name"], "true_stage": photo["true_stage"]}
 
 
@@ -349,18 +349,18 @@ def render_result(result: dict, threshold: float) -> None:
     family = FAMILIES[result["family"]]
     with st.container(key=f"kpi-{result['family']}"):
         col1, col2, col3 = st.columns(3)
-        col1.metric("Classe prédite", family["label"])
-        col2.metric("Confiance", f"{result['confidence']:.0%}")
-        col3.metric("Recommandation", family["advice"])
+        col1.metric("Predicted class", family["label"])
+        col2.metric("Confidence", f"{result['confidence']:.0%}")
+        col3.metric("Recommendation", family["advice"])
     st.progress(
-        min(result["confidence"], 1.0), text=f"Stade exact : {STAGE_LABELS[result['stage']]}"
+        min(result["confidence"], 1.0), text=f"Exact stage: {STAGE_LABELS[result['stage']]}"
     )
     with st.container(key=f"verdict-{result['family']}"):
         st.markdown(f"{family['icon']} {family['message']}")
     # Below the threshold, the answer is shown but flagged as uncertain.
     if result["confidence"] < threshold:
         st.warning(
-            f"Confiance inférieure au seuil de {threshold:.0%} : résultat à confirmer.",
+            f"Confidence below the {threshold:.0%} threshold: treat this result with caution.",
             icon=":material/warning:",
         )
     if result["true_stage"]:
@@ -372,10 +372,10 @@ def render_ground_truth(result: dict) -> None:
     truth = result["true_stage"]
     if truth == result["stage"]:
         st.success(
-            f"Correct : le dataset indique {STAGE_LABELS[truth]}.", icon=":material/verified:"
+            f"Correct: the dataset label is {STAGE_LABELS[truth]}.", icon=":material/verified:"
         )
     else:
-        st.info(f"Le dataset indique {STAGE_LABELS[truth]}.", icon=":material/info:")
+        st.info(f"The dataset label is {STAGE_LABELS[truth]}.", icon=":material/info:")
 
 
 def render_analysis_tab(catalog: pd.DataFrame, api_url: str, threshold: float) -> None:
@@ -386,12 +386,12 @@ def render_analysis_tab(catalog: pd.DataFrame, api_url: str, threshold: float) -
         if photo:
             st.image(photo["bytes"], width="stretch")
     with right:
-        if photo and st.button("Prédire", icon=":material/neurology:", type="primary"):
+        if photo and st.button("Predict", icon=":material/neurology:", type="primary"):
             result = run_analysis(photo, api_url)
             if result:
                 record_history(result)
                 st.session_state["last_result"] = result
-                st.toast("Analyse terminée", icon=":material/task_alt:")
+                st.toast("Analysis complete", icon=":material/task_alt:")
         if st.session_state.get("last_result"):
             render_result(st.session_state["last_result"], threshold)
         else:
@@ -405,12 +405,12 @@ def record_history(result: dict) -> None:
     """Append one prediction to the session history."""
     st.session_state.setdefault("history", []).append(
         {
-            "Heure": datetime.now().strftime("%H:%M:%S"),
+            "Time": datetime.now().strftime("%H:%M:%S"),
             "Photo": result["photo"],
-            "Classe": FAMILIES[result["family"]]["label"],
-            "Stade exact": STAGE_LABELS[result["stage"]],
-            "Confiance": round(result["confidence"], 3),
-            "Stade réel": STAGE_LABELS.get(result["true_stage"], "inconnu"),
+            "Class": FAMILIES[result["family"]]["label"],
+            "Exact stage": STAGE_LABELS[result["stage"]],
+            "Confidence": round(result["confidence"], 3),
+            "True stage": STAGE_LABELS.get(result["true_stage"], "unknown"),
         }
     )
 
@@ -421,34 +421,34 @@ def render_results_tab() -> None:
     if not history:
         st.info(EMPTY_STATE, icon=":material/info:")
         return
-    st.markdown(f"#### Historique de la session ({len(history)} analyses)")
+    st.markdown(f"#### Session history ({len(history)} analyses)")
     st.dataframe(
         pd.DataFrame(history[::-1]),
         hide_index=True,
         width="stretch",
-        column_config={"Confiance": st.column_config.ProgressColumn(min_value=0, max_value=1)},
+        column_config={"Confidence": st.column_config.ProgressColumn(min_value=0, max_value=1)},
     )
 
 
 def render_model_tab(metrics: dict | None) -> None:
     """Model tab: how the model works and its real evaluation metrics."""
-    st.markdown("#### Comment fonctionne le modèle")
+    st.markdown("#### How the model works")
     st.markdown(
-        "Chaque photo est résumée en statistiques de couleur de la peau (espace Lab), "
-        "auxquelles s'ajoutent le mode de stockage et le nombre de jours. Une forêt aléatoire "
-        "(scikit-learn) prédit l'un des **5 stades** officiels du dataset ; l'interface les "
-        "regroupe en 3 classes : Unripe (stades 1-2), Ripe (3-4), Overripe (5)."
+        "Each photo is summarised as colour statistics of the skin (Lab colour space), "
+        "plus the storage condition and the number of days in storage. A random forest "
+        "(scikit-learn) predicts one of the dataset's **5 official stages**; the interface "
+        "groups them into 3 classes: Unripe (stages 1-2), Ripe (3-4), Overripe (5)."
     )
     if not metrics:
-        st.info("Métriques indisponibles : lancez `make train evaluate`.", icon=":material/info:")
+        st.info("Metrics unavailable: run `make train evaluate`.", icon=":material/info:")
         return
-    st.markdown(f"#### Évaluation sur {metrics['n_test']} photos d'avocats jamais vus")
+    st.markdown(f"#### Evaluation on {metrics['n_test']} photos of unseen avocados")
     col1, col2, col3 = st.columns(3)
     col1.metric("Accuracy", f"{metrics['accuracy']:.1%}")
-    col2.metric("Précision (macro)", f"{metrics['precision_macro']:.1%}")
-    col3.metric("Rappel (macro)", f"{metrics['recall_macro']:.1%}")
+    col2.metric("Precision (macro)", f"{metrics['precision_macro']:.1%}")
+    col3.metric("Recall (macro)", f"{metrics['recall_macro']:.1%}")
     st.caption(
-        "Données : 'Hass' Avocado Ripening Photographic Dataset, Xavier, Rodrigues & Silva "
+        "Data: 'Hass' Avocado Ripening Photographic Dataset, Xavier, Rodrigues & Silva "
         "(2024), CC BY 4.0."
     )
 
@@ -467,9 +467,9 @@ def main() -> None:
     threshold = render_sidebar(metrics)
     analyse, results, model = st.tabs(
         [
-            ":material/photo_camera: Analyse",
-            ":material/analytics: Résultats",
-            ":material/info: Modèle",
+            ":material/photo_camera: Analysis",
+            ":material/analytics: Results",
+            ":material/info: Model",
         ]
     )
     with analyse:

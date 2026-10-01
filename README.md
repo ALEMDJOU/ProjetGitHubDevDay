@@ -32,7 +32,7 @@ GitHub Actions and Copilot"*.
 > **TODO(owner): add the RipeVision demo video here.**
 > 1. Run the UI (`make ui`, or on Windows `streamlit run app/streamlit_app.py`) and record
 >    30 to 60 seconds with the Xbox Game Bar (<kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd>) or OBS:
->    pick a photo, click **Prédire**, show the result, then the *Résultats* and *Modèle* tabs.
+>    pick a photo, click **Predict**, show the result, then the *Results* and *Model* tabs.
 > 2. Keep the `.mp4` under **10 MB** (GitHub's limit for videos on free plans).
 > 3. On GitHub, open `README.md`, click the pencil icon, and **drag the `.mp4` onto the empty
 >    line under the `DEMO VIDEO` comment**. GitHub uploads it and inserts a
@@ -158,12 +158,12 @@ shortcut; on Windows, type the command on the right instead.
 
 ### 🖥️ Streamlit UI: RipeVision
 
-Upload a photo (or pick a real one from the dataset), click **Prédire**, and the UI extracts
+Upload a photo (or pick a real one from the dataset), click **Predict**, and the UI extracts
 its colour features with the same code as the dataset and sends them to the **live API**.
 The model answers with the 5 real stages; the UI groups them into 3 classes for readability
 (**Unripe** = stages 1-2, **Ripe** = 3-4, **Overripe** = 5) and shows the confidence, a
-recommendation, the exact stage and, for dataset photos, the true label. Tabs: *Analyse*,
-*Résultats* (session history) and *Modèle* (real metrics from `metrics/metrics.json`).
+recommendation, the exact stage and, for dataset photos, the true label. Tabs: *Analysis*,
+*Results* (session history) and *Model* (real metrics from `metrics/metrics.json`).
 Theme in [`.streamlit/config.toml`](.streamlit/config.toml); no result is ever simulated.
 
 ```bash
