@@ -26,7 +26,7 @@ GitHub Actions and Copilot"*.
 
 ### RipeVision, the Streamlit interface
 
-https://github.com/ALEMDJOU/ProjetGitHubDevDay/raw/main/assets/interface.mp4
+interface.mp4
 
 [Watch the RipeVision demo video](assets/interface.mp4) (30 s): pick a photo, predict, browse the results.
 
