@@ -26,9 +26,10 @@ GitHub Actions and Copilot"*.
 
 ### RipeVision, the Streamlit interface
 
-interface.mp4
+![RipeVision demo: upload an avocado photo, click Predict, see the predicted class, confidence and recommendation](assets/interface.gif)
 
-[Watch the RipeVision demo video](assets/interface.mp4) (30 s): pick a photo, predict, browse the results.
+30-second demo: upload a photo, predict, browse the results.
+Full-quality video: [assets/interface.mp4](https://github.com/ALEMDJOU/ProjetGitHubDevDay/raw/main/assets/interface.mp4) (download).
 
 ### The API (FastAPI docs)
 
