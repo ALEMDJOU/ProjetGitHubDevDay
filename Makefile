@@ -4,7 +4,8 @@
 
 # Override with `make PYTHON=python3.11 ...` if needed.
 PYTHON ?= python
-# The package lives in src/ (not installed): make it importable for every target.
+# `make install` installs the avoripe package (pip install -e .); PYTHONPATH is only a
+# fallback so targets also work before installation.
 export PYTHONPATH := src
 
 .PHONY: install lint format test train evaluate run ui docker all

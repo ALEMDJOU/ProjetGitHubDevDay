@@ -69,42 +69,66 @@ More details in [`docs/architecture.md`](docs/architecture.md).
 
 ## ⚡ Quick start
 
-```bash
-git clone https://github.com/ALEMDJOU/ProjetGitHubDevDay.git && cd ProjetGitHubDevDay
-python3.11 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-make install
-make train evaluate
-make run                                                # http://localhost:7860/docs
+Requires **Python 3.11** and Git. `pip install -r requirements-dev.txt` also installs the
+project's own package, `avoripe` (from `src/`), so every command below works as is.
+
+**Windows (PowerShell)**, no `make` needed:
+
+```powershell
+git clone https://github.com/ALEMDJOU/ProjetGitHubDevDay.git; cd ProjetGitHubDevDay
+py -3.11 -m venv .venv; .\.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt
+python -m avoripe.train; python -m avoripe.evaluate
+uvicorn avoripe.api:app --port 7860                      # http://localhost:7860/docs
 ```
 
-Predict the ripeness of a real avocado photo (`T20_d05_001_a_3`, labelled stage 3 by the
-dataset authors):
+**macOS / Linux**, with `make`:
 
 ```bash
-curl -s -X POST http://localhost:7860/predict \
-  -H "Content-Type: application/json" \
-  -d '{"storage_group": "T20", "day": 5, "l_mean": 36.1304, "l_std": 8.8149,
-       "a_mean": 6.0232, "a_std": 3.8616, "b_mean": 3.1052, "b_std": 5.3169,
-       "dark_fraction": 0.2505, "fruit_fraction": 0.2318}'
+git clone https://github.com/ALEMDJOU/ProjetGitHubDevDay.git && cd ProjetGitHubDevDay
+python3.11 -m venv .venv && source .venv/bin/activate
+make install
+make train evaluate
+make run                                                 # http://localhost:7860/docs
+```
+
+> [!TIP]
+> If PowerShell refuses to run `Activate.ps1`, run once
+> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, or skip activation and prefix the
+> commands with `.\.venv\Scripts\` (e.g. `.\.venv\Scripts\python -m avoripe.train`).
+
+Predict the ripeness of a real avocado photo (`T20_d05_001_a_3`, labelled stage 3 by the
+dataset authors), from a second terminal at the project root (`curl.exe` on Windows):
+
+```bash
+curl -s -X POST http://localhost:7860/predict -H "Content-Type: application/json" -d "@tests/fixtures/known_sample.json"
 ```
 
 ```json
 {"ripeness":"ripe_first_stage","probabilities":{"breaking":0.045,"overripe":0.0661,"ripe_first_stage":0.6822,"ripe_second_stage":0.2067,"underripe":0.0}}
 ```
 
-<details>
-<summary><b>No <code>make</code>? (Windows)</b></summary>
+Or simply open <http://localhost:7860/docs> and use **Try it out** on `POST /predict`.
 
-```powershell
-pip install -r requirements-dev.txt
-$env:PYTHONPATH = "src"
-python -m avoripe.train
-python -m avoripe.evaluate
-uvicorn avoripe.api:app --host 0.0.0.0 --port 7860
-# Streamlit UI (in another terminal, same PYTHONPATH)
-pip install -r requirements-ui.txt
-streamlit run app/streamlit_app.py
-```
+<details>
+<summary><b>What is the <code>Makefile</code>? Targets and their Windows equivalents</b></summary>
+
+A `Makefile` is a list of named shortcuts for the `make` tool (standard on macOS and Linux, not
+installed on Windows): `make test` runs the full test command for you. Every target is just a
+shortcut; on Windows, type the command on the right instead.
+
+| Target | What it does | Same thing without `make` |
+|---|---|---|
+| `make install` | Install dependencies + the `avoripe` package | `pip install -r requirements-dev.txt` |
+| `make lint` | Ruff lint + format check | `ruff check .` then `ruff format --check .` |
+| `make format` | Auto-fix and format the code | `ruff check --fix .` then `ruff format .` |
+| `make test` | Tests with the 80% coverage gate | `pytest --cov=src --cov-fail-under=80` |
+| `make train` | Train → `models/model.joblib` | `python -m avoripe.train` |
+| `make evaluate` | Metrics + quality gate → `metrics/` | `python -m avoripe.evaluate` |
+| `make run` | API on port 7860 | `uvicorn avoripe.api:app --port 7860` |
+| `make ui` | Streamlit UI on port 8501 | `pip install -r requirements-ui.txt` then `streamlit run app/streamlit_app.py` |
+| `make docker` | Build and run the Docker image | `docker build -t avoripe:local .` then `docker run --rm -p 7860:7860 avoripe:local` |
+| `make all` | lint + test + train + evaluate | the four commands above, in that order |
 
 </details>
 
@@ -128,6 +152,7 @@ Theme in [`.streamlit/config.toml`](.streamlit/config.toml); no result is ever s
 
 ```bash
 make ui                                                 # http://localhost:8501
+# Windows: pip install -r requirements-ui.txt; streamlit run app/streamlit_app.py
 ```
 
 It calls `https://avocado-ripeness.onrender.com` by default (the URL is not shown in the UI); set `AVORIPE_API_URL` to use a
