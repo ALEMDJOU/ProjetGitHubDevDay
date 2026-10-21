@@ -54,7 +54,7 @@ flowchart LR
     G -- fail --> X[❌ Stop:<br/>no artifact, no deploy]
     G -- pass --> P[📦 Package<br/>Docker → GHCR]
     P --> DEP[🚀 Deploy<br/>Render]
-    DEP --> NS[⏰ Never Sleep<br/>ping every 10 min]
+    DEP --> NS[⏰ Keep warm<br/>external ping every 5 min]
     DEP --> M[📈 Monitor<br/>every 6 h]
     UI[🖥️ Streamlit UI<br/>photo → features] -. POST /predict .-> DEP
     M -- failure --> I[🚨 GitHub issue]
@@ -68,7 +68,7 @@ flowchart LR
 | Evaluate + gate | [`train.yml`](.github/workflows/train.yml) | scikit-learn metrics, `MIN_F1` |
 | Package | [`deploy.yml`](.github/workflows/deploy.yml) | Docker, GitHub Container Registry |
 | Deploy | [`deploy.yml`](.github/workflows/deploy.yml) | Render free web service (deploy hook), FastAPI, Uvicorn |
-| Keep warm | [`Never_Sleep.yml`](.github/workflows/Never_Sleep.yml) | curl every 10 min |
+| Keep warm | External pinger (UptimeRobot, every 5 min) + [`Never_Sleep.yml`](.github/workflows/Never_Sleep.yml) as safety net | curl |
 | Monitor | [`monitor.yml`](.github/workflows/monitor.yml) | curl, GitHub CLI (issues) |
 
 More details in [`docs/architecture.md`](docs/architecture.md).
@@ -172,7 +172,7 @@ local API (`make run`). The dataset photos must be in `data/images/` (see
 | **CI** | Pull request, push to `main` | Ruff lint + format check, pytest (coverage ≥ 80%), Docker build, run container, `curl /health` | ✅/❌ on the PR |
 | **Train & Evaluate** | Push to `main` touching `data/**` or training code, weekly cron, manual (`min_f1` input) | Train, evaluate, quality gate, job summary with metrics + confusion matrix | Artifact `model` (`model.joblib` + `metrics.json`, 30 days) |
 | **Deploy** | After a **successful** Train & Evaluate on `main`, or manual (`run_id` optional: empty = latest green training run) | Download the artifact, push image to GHCR (`sha` + `latest`), redeploy it on Render, wait until live `/health` reports the new commit SHA | Image on GHCR, live API on Render |
-| **Never Sleep** | Every 10 min, manual | Ping `/health` so the free Render instance never spins down | Always-warm API |
+| **Never Sleep** | Cron every 10 min (GitHub actually runs it ~5×/day), manual | Wake-up ping of `/health` (up to ~4 min for a cold start); safety net behind the external pinger | Fewer cold starts |
 | **Monitor** | Every 6 h, manual | Check live `/health` and one known real prediction | GitHub issue on failure |
 
 ### 🚦 The quality gate
@@ -325,7 +325,9 @@ pull it), and create a Render **Web Service → Existing image** from
 - **No data versioning** beyond Git + checksums (no DVC by design).
 - **No model registry:** models live as 30-day workflow artifacts and inside Docker images.
 - **Free hosting limits:** Render's free plan gives 750 instance-hours per month (enough for one
-  always-on service) and restarts can take a minute; `Never_Sleep.yml` only prevents idle spin-down.
+  always-on service). The instance sleeps after 15 min idle and a cold start takes ~45 s.
+  GitHub runs the `*/10` cron of `Never_Sleep.yml` only ~5 times a day (measured), so an
+  external free pinger (UptimeRobot or cron-job.org, every 5 min on `/health`) keeps it warm.
 - **Minimal monitoring:** health + one known prediction; `/metrics` is in-memory and resets on
   restart. No drift detection yet.
 

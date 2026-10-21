@@ -1,7 +1,12 @@
 name: Never Sleep
 
-# Render free web services spin down after 15 minutes without traffic.
-# Pinging /health every 10 minutes keeps the demo instance warm.
+# Render free web services spin down after 15 minutes without traffic. This job pings
+# /health to wake the instance up and keep it warm.
+#
+# Measured reality: GitHub does not honour very frequent crons. Between 01/10 and 12/10/2026
+# this "every 10 minutes" schedule actually ran ~5 times a day (median gap ~5 h), so it is
+# only a safety net. For an always-warm demo, add an external pinger that really calls
+# /health every 5 minutes (e.g. UptimeRobot or cron-job.org, both free): see README.
 on:
   schedule:
     - cron: "*/10 * * * *"
@@ -17,7 +22,7 @@ jobs:
   ping:
     name: Keep the service awake
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 6
     # Same environment as deploy.yml, so the job reads the APP_URL defined on `production`.
     environment: production
     env:
@@ -30,7 +35,15 @@ jobs:
             exit 1
           fi
 
+      # A cold start takes ~45 s and the instance may answer errors while it boots:
+      # keep polling for up to ~4 minutes instead of failing on the first error.
       - name: Ping /health
         run: |
-          # A cold start can take ~1 minute on the free plan, hence the long timeout and retries.
-          curl -fsS -m 90 --retry 3 --retry-delay 10 --retry-all-errors "$APP_URL/health"
+          for i in $(seq 1 12); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" -m 60 "$APP_URL/health" || true)
+            echo "attempt $i: HTTP $CODE"
+            if [ "$CODE" = "200" ]; then exit 0; fi
+            sleep 20
+          done
+          echo "::error::$APP_URL/health still not answering 200 after ~4 minutes"
+          exit 1

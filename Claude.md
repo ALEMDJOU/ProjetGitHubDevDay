@@ -91,7 +91,7 @@ avocado-ripeness-mlops/
 
 Rules for all workflows: minimal `permissions:` per workflow, `timeout-minutes` on jobs, actions pinned to major versions, pip cache enabled, no secrets echoed.
 
-| `Never_Sleep.yml` | cron every 10 min, manual | Ping `/health` so the Render free instance never spins down (it sleeps after 15 min idle). |
+| `Never_Sleep.yml` | cron every 10 min (GitHub actually runs it ~5 times a day), manual | Ping `/health` with a ~4 min wake-up window; safety net only. Keeping the Render free instance warm (it sleeps after 15 min idle) relies on an external free pinger (UptimeRobot / cron-job.org, every 5 min). |
 
 Secrets and variables to document (not to create): secret `RENDER_DEPLOY_HOOK_URL` (environment `production`); variables `APP_URL` (public Render URL, on environment `production`; deploy, monitor and Never_Sleep jobs all use that environment), `MIN_F1`; optional `HF_SPACE` + secret `HF_TOKEN` for the Hugging Face target.
 

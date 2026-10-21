@@ -11,7 +11,7 @@ flowchart LR
     E -- fail --> X[❌ stop, no artifact]
     E -- pass --> F[artifact: model]
     F --> G[deploy.yml<br/>GHCR image → Render]
-    G --> K[Never_Sleep.yml<br/>ping every 10 min]
+    G --> K[Never_Sleep.yml<br/>wake-up ping, safety net]
     G --> H[monitor.yml<br/>every 6 h]
     H -- failure --> I[🚨 GitHub issue]
 ```
@@ -26,7 +26,7 @@ flowchart LR
 | Train | `train.yml` → `avoripe.train` | scikit-learn | `models/model.joblib` |
 | Evaluate + gate | `train.yml` → `avoripe.evaluate` | scikit-learn | `metrics/metrics.json`, `metrics/report.md`, exit 1 if gate fails |
 | Package + deploy | `deploy.yml` | Docker, GHCR, Render deploy hook | image `sha` + `latest`, Render service on the new tag, `/health` reports the SHA |
-| Keep warm | `Never_Sleep.yml` | curl | Render free instance never spins down |
+| Keep warm | `Never_Sleep.yml` + external pinger (UptimeRobot) | curl | GitHub runs the cron only ~5×/day, so the external pinger (every 5 min) keeps Render awake; Never Sleep is a safety net |
 | Monitor | `monitor.yml` | curl, gh | issue on failure |
 
 ## Why a one-off extraction step?

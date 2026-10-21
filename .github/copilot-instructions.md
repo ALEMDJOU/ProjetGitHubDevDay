@@ -29,7 +29,8 @@ GitHub Actions. Do not suggest PyTorch, TensorFlow, MLflow, DVC, Kubernetes or p
 - `train.yml`: train, evaluate, quality gate on macro F1 (`MIN_F1`), upload artifact `model`.
 - `deploy.yml`: after a successful train, push image to GHCR and redeploy it on Render (deploy hook);
   the HF Space is optional.
-- `Never_Sleep.yml`: pings `/health` every 10 min so the free Render instance stays awake.
+- `Never_Sleep.yml`: wake-up ping of `/health` (safety net: GitHub runs it ~5 times a day, not
+  every 10 min; an external pinger keeps Render warm).
 - `monitor.yml`: every 6 h, check `/health` and a known prediction; open an issue on failure.
 - Keep minimal `permissions:`, `timeout-minutes` on every job, actions pinned to major versions.
 

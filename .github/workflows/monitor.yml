@@ -1,6 +1,6 @@
 # Monitor: every 6 hours, check that the live API is up AND still predicts correctly.
-# If a check fails, open a GitHub issue (or comment on the one already open) with a link
-# to the failing run.
+# The free Render instance sleeps when idle, so the job first gives it time to wake up;
+# only an API that is still unreachable (or wrong) after that opens or updates an issue.
 name: Monitor
 
 on:
@@ -17,7 +17,7 @@ jobs:
   monitor:
     name: Check live service
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     # Same environment as deploy.yml, so the job reads the APP_URL defined on `production`.
     environment: production
     env:
@@ -32,14 +32,26 @@ jobs:
             exit 1
           fi
 
-      # -m 90: a sleeping free instance can take ~1 minute to answer the first request.
+      # A sleeping free instance answers after ~45 s, sometimes with errors while it boots.
+      # Poll for up to ~4 minutes before judging: a cold start is not an outage.
+      - name: Wake up the service
+        run: |
+          for i in $(seq 1 12); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" -m 60 "$APP_URL/health" || true)
+            echo "attempt $i: HTTP $CODE"
+            if [ "$CODE" = "200" ]; then exit 0; fi
+            sleep 20
+          done
+          echo "::error::$APP_URL/health still not answering 200 after the wake-up window"
+          exit 1
+
       - name: Check /health
-        run: curl -fsS -m 90 --retry 3 --retry-delay 10 "$APP_URL/health" | tee health.json | grep -q '"model_loaded":true'
+        run: curl -fsS -m 30 --retry 3 --retry-delay 10 "$APP_URL/health" | tee health.json | grep -q '"model_loaded":true'
 
       # Known prediction: one real photo from the dataset, stored in tests/fixtures.
       - name: Check a known prediction
         run: |
-          curl -fsS -m 90 --retry 3 --retry-delay 10 -X POST "$APP_URL/predict" \
+          curl -fsS -m 30 --retry 3 --retry-delay 10 -X POST "$APP_URL/predict" \
             -H "Content-Type: application/json" \
             -d @tests/fixtures/known_sample.json | tee prediction.json
           python3 -c "import json; p = json.load(open('prediction.json')); assert p['ripeness'] in p['probabilities']"
