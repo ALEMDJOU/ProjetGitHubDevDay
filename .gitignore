@@ -29,3 +29,16 @@ data/images/
 Thumbs.db
 .idea/
 .vscode/
+
+# LaTeX build files (recap_mlops.tex)
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Local assistant instructions: kept on disk, never published
+Claude.md
+CLAUDE.md
