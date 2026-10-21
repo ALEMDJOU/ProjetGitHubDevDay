@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # streamlit 1.64 requires pillow<13: a pillow 13 bump cannot be installed (CI fails at
+    # "Install dependencies"). Remove this rule once streamlit accepts pillow 13.
+    ignore:
+      - dependency-name: "pillow"
+        versions: [">=13"]
     commit-message:
       prefix: "chore(deps)"
   - package-ecosystem: github-actions
