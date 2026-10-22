@@ -81,7 +81,7 @@ jobs:
           echo "TRAIN_RUN_ID=$RUN_ID" >> "$GITHUB_ENV"
 
       - name: Download model artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: model
           run-id: ${{ env.TRAIN_RUN_ID }}
